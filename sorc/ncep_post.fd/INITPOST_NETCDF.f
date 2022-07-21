@@ -67,7 +67,7 @@
               ardsw, asrfc, avrain, avcnvc, theat, gdsdegr, spl, lsm, alsl, im, jm, im_jm, lm,  &
               jsta_2l, jend_2u, nsoil, lp1, icu_physics, ivegsrc, novegtype, nbin_ss, nbin_bc,  &
               nbin_oc, nbin_su, gocart_on, pt_tbl, hyb_sigp, filenameFlux, fileNameAER,         &
-              iSF_SURFACE_PHYSICS,rdaod, aqfcmaq_on, modelname,                                 &
+              iSF_SURFACE_PHYSICS,rdaod, aqfcmaq_on, modelname, smflag                          &
               ista, iend, ista_2l, iend_2u,iend_m
       use gridspec_mod, only: maptype, gridtype, latstart, latlast, lonstart, lonlast, cenlon,  &
               dxval, dyval, truelat2, truelat1, psmapf, cenlat,lonstartv, lonlastv, cenlonv,    &
@@ -1026,7 +1026,7 @@
         call read_netcdf_3d_para(ncid3d,im,jm,ista,ista_2l,iend,iend_2u,jsta,jsta_2l,jend,jend_2u, &
         spval,VarName,cfr(ista_2l,jsta_2l,1),lm)
       else
-        VarName='cldfra'
+        VarName='cldfra_bl'
         call read_netcdf_3d_para(ncid2d,im,jm,ista,ista_2l,iend,iend_2u,jsta,jsta_2l,jend,jend_2u, &
         spval,VarName,cfr(ista_2l,jsta_2l,1),lm)
       endif
@@ -2943,21 +2943,47 @@
       enddo
 !     if(debugprint)print*,'sample l',VarName,' = ',1,isltyp(isa,jsa)
       
+      IF(MODELNAME == 'FV3R')THEN
+        VarName='wet1'
+        call read_netcdf_2d_scatter(me,ncid2d,1,im,jm,jsta,jsta_2l &
+         ,jend_2u,MPI_COMM_COMP,icnt,idsp,spval,VarName,buf)
 !$omp parallel do private(i,j)
-      do j=jsta_2l,jend_2u
-        do i=ista_2l,iend_2u
-          smstav(i,j) = spval    ! GFS does not have soil moisture availability
-!          smstot(i,j) = spval    ! GFS does not have total soil moisture
-          sfcevp(i,j) = spval    ! GFS does not have accumulated surface evaporation
-          acsnow(i,j) = spval    ! GFS does not have averaged accumulated snow
-          acsnom(i,j) = spval    ! GFS does not have snow melt
-!          sst(i,j)    = spval    ! GFS does not have sst????
-          thz0(i,j)   = ths(i,j) ! GFS does not have THZ0, use THS to substitute
-          qz0(i,j)    = spval    ! GFS does not output humidity at roughness length
-          uz0(i,j)    = spval    ! GFS does not output u at roughness length
-          vz0(i,j)    = spval    ! GFS does not output humidity at roughness length
+        do j=jsta,jend
+          do i=1,im
+            smstav(i,j) = buf(i,j)
+          enddo
+        enddo
+!$omp parallel do private(i,j)
+        do j=jsta_2l,jend_2u
+          do i=1,im
+!            smstot(i,j) = spval    ! GFS does not have total soil moisture
+            sfcevp(i,j) = spval    ! GFS does not have accumulated surface evaporation
+            acsnow(i,j) = spval    ! GFS does not have averaged accumulated snow
+            acsnom(i,j) = spval    ! GFS does not have snow melt
+!            sst(i,j)    = spval    ! GFS does not have sst????
+            thz0(i,j)   = ths(i,j) ! GFS does not have THZ0, use THS to substitute
+            qz0(i,j)    = spval    ! GFS does not output humidity at roughness length
+            uz0(i,j)    = spval    ! GFS does not output u at roughness length
+            vz0(i,j)    = spval    ! GFS does not output humidity at roughness length
         enddo
       enddo
+      ELSE
+!$omp parallel do private(i,j)
+        do j=jsta_2l,jend_2u
+          do i=1,im
+            smstav(i,j) = spval    ! GFS does not have soil moisture availability
+!            smstot(i,j) = spval    ! GFS does not have total soil moisture
+            sfcevp(i,j) = spval    ! GFS does not have accumulated surface evaporation
+            acsnow(i,j) = spval    ! GFS does not have averaged accumulated snow
+            acsnom(i,j) = spval    ! GFS does not have snow melt
+!            sst(i,j)    = spval    ! GFS does not have sst????
+            thz0(i,j)   = ths(i,j) ! GFS does not have THZ0, use THS to substitute
+            qz0(i,j)    = spval    ! GFS does not output humidity at roughness length
+            uz0(i,j)    = spval    ! GFS does not output u at roughness length
+            vz0(i,j)    = spval    ! GFS does not output humidity at roughness length
+          enddo
+        enddo
+      END IF
       do l=1,lm
 !$omp parallel do private(i,j)
         do j=jsta_2l,jend_2u
@@ -3444,6 +3470,13 @@
 
 !       write(6,*)'lonstart,lonlast A calling bcast=',lonstart,lonlast
 !
+
+!tgs Define smoothing flag for isobaric output 
+              IF(MODELNAME == 'RAPR' .OR. MODELNAME == 'FV3R')THEN
+                SMFLAG=.TRUE.
+              ELSE
+                SMFLAG=.FALSE.
+              ENDIF
 
 ! generate look up table for lifted parcel calculations
 
