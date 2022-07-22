@@ -67,7 +67,7 @@
               ardsw, asrfc, avrain, avcnvc, theat, gdsdegr, spl, lsm, alsl, im, jm, im_jm, lm,  &
               jsta_2l, jend_2u, nsoil, lp1, icu_physics, ivegsrc, novegtype, nbin_ss, nbin_bc,  &
               nbin_oc, nbin_su, gocart_on, pt_tbl, hyb_sigp, filenameFlux, fileNameAER,         &
-              iSF_SURFACE_PHYSICS,rdaod, aqfcmaq_on, modelname, smflag                          &
+              iSF_SURFACE_PHYSICS,rdaod, aqfcmaq_on, modelname, smflag,                         &
               ista, iend, ista_2l, iend_2u,iend_m
       use gridspec_mod, only: maptype, gridtype, latstart, latlast, lonstart, lonlast, cenlon,  &
               dxval, dyval, truelat2, truelat1, psmapf, cenlat,lonstartv, lonlastv, cenlonv,    &
@@ -2945,11 +2945,11 @@
       
       IF(MODELNAME == 'FV3R')THEN
         VarName='wet1'
-        call read_netcdf_2d_scatter(me,ncid2d,1,im,jm,jsta,jsta_2l &
-         ,jend_2u,MPI_COMM_COMP,icnt,idsp,spval,VarName,buf)
+        call read_netcdf_2d_para(ncid2d,ista,ista_2l,iend,iend_2u,jsta,jsta_2l,jend,jend_2u, &
+        spval,VarName,buf)
 !$omp parallel do private(i,j)
-        do j=jsta,jend
-          do i=1,im
+        do j = jsta_2l, jend_2u
+          do i=ista,iend
             smstav(i,j) = buf(i,j)
           enddo
         enddo
