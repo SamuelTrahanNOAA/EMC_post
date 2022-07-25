@@ -3669,25 +3669,41 @@
 !       
 !    CAPE AND CINS 0-3KM, FOLLOW ML PROCEDURE WITH HEIGHT 0-3KM
 !
-         FIELD1=.FALSE.
-         FIELD2=.FALSE.
-!
-         IF(IGET(032)>0)THEN
-           IF(LVLS(3,IGET(032))>0)FIELD1=.TRUE.
-         ENDIF
-         IF(IGET(107)>0)THEN
-           IF(LVLS(3,IGET(107))>0)FIELD2=.TRUE.
-         ENDIF
-!
-         IF(IGET(950)>0)THEN
+         IF (MODELNAME == 'RAPR') THEN
+           FIELD1=.FALSE.
+           FIELD2=.FALSE.
+
+           IF(IGET(032)>0)THEN
+             IF(LVLS(3,IGET(032))>0)FIELD1=.TRUE.
+           ENDIF
+           IF(IGET(107)>0)THEN
+             IF(LVLS(3,IGET(107))>0)FIELD2=.TRUE.
+           ENDIF
+
+           IF(IGET(950)>0)THEN
+             FIELD1=.TRUE.
+           ENDIF
+           IF(IGET(951)>0)THEN
+             FIELD2=.TRUE.
+           ENDIF
+
+         ELSE !FV3R and others
            FIELD1=.TRUE.
-         ENDIF
-         IF(IGET(951)>0)THEN
            FIELD2=.TRUE.
+!          Wm Lewis 2 JUN 2022: Necessary that FIELD1/FIELD2=.FALSE. FOR
+!          GOES-16/17/18
+           IF((IGET(927)>0).OR.(IGET(928)>0).OR.(IGET(929)>0).OR.(IGET(930)>0).OR. &
+              (IGET(931)>0).OR.(IGET(932)>0).OR.(IGET(933)>0).OR.(IGET(934)>0).OR. &
+              (IGET(935)>0).OR.(IGET(936)>0).OR.(IGET(937)>0).OR.(IGET(938)>0).OR. &
+              (IGET(939)>0).OR.(IGET(940)>0).OR.(IGET(941)>0).OR.(IGET(942)>0).OR. &
+              (IGET(943)>0).OR.(IGET(944)>0).OR.(IGET(945)>0).OR.(IGET(946)>0).OR. &
+              (IGET(531)>0).OR.(IGET(532)>0).OR.(IGET(533)>0).OR.(IGET(534)>0).OR. &
+              (IGET(535)>0).OR.(IGET(536)>0).OR.(IGET(537)>0).OR.(IGET(538)>0).OR. &
+              (IGET(539)>0).OR.(IGET(540)>0))THEN
+                FIELD1=.FALSE.
+                FIELD2=.FALSE.
+           ENDIF
          ENDIF
-!
-!         IF(FIELD1)ITYPE=2
-!         IF(FIELD2)ITYPE=2
 
          IF(FIELD1.OR.FIELD2)THEN
            ITYPE = 2
