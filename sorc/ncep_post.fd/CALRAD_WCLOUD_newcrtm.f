@@ -566,7 +566,7 @@
              (isis=='imgr_g15' .and. iget(872)>0) .OR. &
              (isis=='abi_g16'  .and. post_abig16) .OR. &
              (isis=='abi_g17'  .and. post_abig17) .OR. &
-              (isis=='abi_g18' .and. post_abig18) .OR. &
+             (isis=='abi_g18'  .and. post_abig18) .OR. &
              (isis=='abi_gr'   .and. post_abigr) .OR. &
              (isis=='seviri_m10' .and. iget(876)>0) .OR. &
              (isis=='ahi_himawari8' .and. post_ahi8) )then
@@ -1282,7 +1282,7 @@
                         (isis=='imgr_g15' .and. iget(872)>0) .OR. &
                         (isis=='abi_g16'  .and. post_abig16) .OR. &
                         (isis=='abi_g17'  .and. post_abig17) .OR. &
-                        (isis=='abi_g18' .and. post_abig18) .OR. &
+                        (isis=='abi_g18'  .and. post_abig18) .OR. &
                         (isis=='seviri_m10' .and. iget(876)>0) .OR. &
                         (isis=='ahi_himawari8' .and. post_ahi8) .OR. &
                         (isis=='imgr_g12' .and. (iget(456)>0 .or. &

@@ -3556,7 +3556,6 @@
 
 
       IF (SUBMODELNAME == 'RTMA')THEN
-
 !
 ! --- Effective (inflow) Layer (EL)
 !

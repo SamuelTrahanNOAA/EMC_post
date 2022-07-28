@@ -1769,7 +1769,6 @@ snow_check:   IF (QQS(I,J,L)>=QCLDmin) THEN
 
         DO J=JSTA,JEND
           DO I=ISTA,IEND
-!
 !- imported from RUC post
           CLDZ(I,J) = SPVAL 
           pcldbase = SPVAL
