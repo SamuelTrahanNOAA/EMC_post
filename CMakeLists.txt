@@ -72,6 +72,17 @@ if(BUILD_POSTEXEC)
   if(BUILD_WITH_WRFIO)
     find_package(wrf_io REQUIRED)
   endif()
+  if(IFI_FOUND)
+    if(CMAKE_Fortran_COMPILER_ID MATCHES "^Intel$")
+      set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -cxxlib")
+    elseif(CMAKE_Fortran_COMPILER_ID MATCHES "^GNU$")
+      set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lstdc++")
+    elseif(CMAKE_Fortran_COMPILER_ID MATCHES "^(GNU|AppleClang)$")
+      # This one is a wild guess. I haven't tried linking a Fortran
+      # executable with C++ libraries in clang.
+      set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++ -lc++abi")
+    endif()
+  endif()
 endif()
 
 add_subdirectory(sorc)
@@ -83,3 +94,28 @@ if(ENABLE_DOCS)
   add_subdirectory(docs)
 endif()
 
+### Package config
+include(CMakePackageConfigHelpers)
+set(CONFIG_INSTALL_DESTINATION lib/cmake/${PROJECT_NAME})
+
+export(EXPORT ${PROJECT_NAME}Exports
+  NAMESPACE ${PROJECT_NAME}::
+  FILE ${PROJECT_NAME}-targets.cmake)
+
+configure_package_config_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/cmake/PackageConfig.cmake.in ${CMAKE_BINARY_DIR}/${PROJECT_NAME}-config.cmake
+  INSTALL_DESTINATION ${CONFIG_INSTALL_DESTINATION})
+install(FILES ${CMAKE_BINARY_DIR}/${PROJECT_NAME}-config.cmake
+  DESTINATION ${CONFIG_INSTALL_DESTINATION})
+
+write_basic_package_version_file(
+  ${CMAKE_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
+  VERSION ${PROJECT_VERSION}
+  COMPATIBILITY AnyNewerVersion)
+install(FILES ${CMAKE_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
+  DESTINATION ${CONFIG_INSTALL_DESTINATION})
+
+install(EXPORT ${PROJECT_NAME}Exports
+  NAMESPACE ${PROJECT_NAME}::
+  FILE ${PROJECT_NAME}-targets.cmake
+  DESTINATION ${CONFIG_INSTALL_DESTINATION})
