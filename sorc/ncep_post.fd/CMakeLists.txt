@@ -46,6 +46,7 @@ list(APPEND LIB_SRC
     ETCALC.f
     ETAMP_Q2F.f
     EXCH.f
+    EXCH_c_float.f
     FDLVL.f
     FGAMMA.f
     FILL_PSETFLD.f
@@ -62,6 +63,7 @@ list(APPEND LIB_SRC
     grib2_module.f
     GRIDSPEC.f
     ICAOHEIGHT.f
+    IFI.F
     kinds_mod.F
     LFMFLD.f
     LFMFLD_GFS.f
@@ -203,6 +205,11 @@ target_link_libraries(${LIBNAME} PUBLIC
   MPI::MPI_Fortran
   NetCDF::NetCDF_Fortran)
 
+if(IFI_FOUND)
+  target_link_libraries(${LIBNAME} PUBLIC IFI)
+  target_link_libraries(${LIBNAME} PUBLIC tdrp)
+endif()
+
 if(BUILD_WITH_GTG)
   target_link_libraries(${LIBNAME} PUBLIC
   ip::ip_4)
@@ -221,6 +228,10 @@ if(BUILD_POSTEXEC)
     sp::sp_4
     sfcio::sfcio
     sigio::sigio)
+  if(IFI_FOUND)
+    target_link_libraries(${EXENAME} PRIVATE IFI)
+    target_link_libraries(${EXENAME} PRIVATE tdrp)
+  endif()
   if(wrf_io_FOUND)
     target_link_libraries(${EXENAME} PRIVATE
       wrf_io::wrf_io)

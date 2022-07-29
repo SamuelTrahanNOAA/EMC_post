@@ -90,14 +90,15 @@
       use vrbls3d,    only: pmid, uh, vh, t, zmid, zint, pint, alpint, q, omga
       use vrbls3d,    only: catedr,mwt,gtg
       use vrbls2d,    only: pblh, cprate, fis, T500, T700, Z500, Z700,&
-                            teql,ieql
+                            teql,ieql, cape,cin
       use masks,      only: lmh
       use params_mod, only: d00, d50, h99999, h100, h1, h1m12, pq0, a2, a3, a4,    &
                             rhmin, rgamog, tfrz, small, g
       use ctlblk_mod, only: grib, cfld, fld_info, datapd, im, jsta, jend, jm, jsta_m, jend_m, &
                             nbnd, nbin_du, lm, htfd, spval, pthresh, nfd, petabnd, me,&
                             jsta_2l, jend_2u, MODELNAME, SUBMODELNAME, &
-                            ista, iend, ista_m, iend_M, ista_2l, iend_2u
+                            ista, iend, ista_m, iend_M, ista_2l, iend_2u, &
+                            ifi_flight_levels
       use rqstfld_mod, only: iget, lvls, id, iavblfld, lvlsxml
       use grib2_module, only: pset
       use upp_physics, only: FPVSNEW,CALRH_PW,CALCAPE,CALCAPE2,TVIRTUAL
@@ -124,7 +125,7 @@
 !     
 !     DECLARE VARIABLES.
 !     
-      LOGICAL NORTH, FIELD1,FIELD2
+      LOGICAL NORTH, FIELD1,FIELD2, NEED_IFI
       LOGICAL, dimension(ISTA:IEND,JSTA:JEND) :: DONE, DONE1
 
       INTEGER, allocatable ::  LVLBND(:,:,:),LB2(:,:)
@@ -202,6 +203,7 @@
 !     
        debugprint = .FALSE.
        
+       NEED_IFI = IGET(1100)>0 .or. IGET(1101)>0 .or. IGET(1102)>0
 
          allocate(USHR1(ista_2l:iend_2u,jsta_2l:jend_2u),VSHR1(ista_2l:iend_2u,jsta_2l:jend_2u), &
                   USHR6(ista_2l:iend_2u,jsta_2l:jend_2u),VSHR6(ista_2l:iend_2u,jsta_2l:jend_2u))
@@ -1783,7 +1785,7 @@
            (IGET(090)>0).OR.(IGET(075)>0).OR.       &
            (IGET(109)>0).OR.(IGET(110)>0).OR.       &
            (IGET(031)>0).OR.(IGET(032)>0).OR.       &
-           (IGET(573)>0).OR.                           &
+           (IGET(573)>0).OR.                        &
            (IGET(107)>0).OR.(IGET(091)>0).OR.       &
            (IGET(092)>0).OR.(IGET(093)>0).OR.       &
            (IGET(094)>0).OR.(IGET(095)>0).OR.       &
@@ -2228,9 +2230,10 @@
            DPBND = 0.
            CALL CALCAPE(ITYPE,DPBND,P1D,T1D,Q1D,LB2,EGRID1,   &
                         EGRID2,EGRID3,EGRID4,EGRID5) 
+
 !
-           IF (IGET(566)>0) THEN
-! dong add missing value for cape
+           IF(IGET(566)>0) THEN
+             print *,"STORE CAPE"
               GRID1=spval
 !$omp parallel do private(i,j)
               DO J=JSTA,JEND
@@ -2238,7 +2241,31 @@
                   IF(T1D(I,J) < spval) GRID1(I,J) = EGRID1(I,J)
                 ENDDO
               ENDDO
+              CALL BOUND(GRID1,D00,H99999)
+!$omp parallel do private(i,j)
+              DO J=JSTA,JEND
+                DO I=1,IM
+                  CAPE(I,J) = GRID1(I,J)
+                ENDDO
+              ENDDO
+           ENDIF
+
+           IF(IGET(567)>0) THEN
+             print *,"STORE CIN"
+             GRID1=spval
+!$omp parallel do private(i,j)
+             DO J=JSTA,JEND
+               DO I=1,IM
+                 IF(T1D(I,J) < spval) THEN
+                   GRID1(I,J) = - EGRID2(I,J)
+                 ENDIF
+               ENDDO
+             ENDDO
+!
              CALL BOUND(GRID1,D00,H99999)
+           ENDIF
+                        
+           IF (IGET(566)>0) THEN
              if(grib=='grib2') then
               cfld=cfld+1
               fld_info(cfld)%ifld=IAVBLFLD(IGET(566))
@@ -2248,14 +2275,14 @@
                 jj = jsta+j-1
                 do i=1,iend-ista+1
                 ii = ista+i-1
-                  datapd(i,j,cfld) = GRID1(ii,jj)
+                  datapd(i,j,cfld) = CAPE(ii,jj)
                 enddo
               enddo
              endif
            ENDIF
 !
            IF (IGET(567) > 0) THEN
-! dong add missing value for cape
+! dong add missing value for CIN
               GRID1=spval
 !$omp parallel do private(i,j)
              DO J=JSTA,JEND
@@ -2270,6 +2297,7 @@
              DO J=JSTA,JEND
                DO I=ISTA,IEND
                  IF(T1D(I,J) < spval) GRID1(I,J) = - GRID1(I,J)
+                 CIN(I,J) = GRID1(I,J)
                ENDDO
              ENDDO
 !
@@ -2282,7 +2310,7 @@
                 jj = jsta+j-1
                 do i=1,iend-ista+1
                 ii = ista+i-1
-                  datapd(i,j,cfld) = GRID1(ii,jj)
+                  datapd(i,j,cfld) = CIN(ii,jj)
                 enddo
               enddo
              endif
@@ -3365,7 +3393,7 @@
            FIELD2=.TRUE.
          ENDIF
 !
-         IF(FIELD1.OR.FIELD2)THEN
+         IF(FIELD1.OR.FIELD2.OR.NEED_IFI)THEN
            ITYPE = 1
 !
 !$omp parallel do private(i,j)
@@ -3379,15 +3407,15 @@
            DPBND = 300.E2
            CALL CALCAPE(ITYPE,DPBND,P1D,T1D,Q1D,LB2,EGRID1,     &
                         EGRID2,EGRID3,EGRID4,EGRID5)
-           IF (IGET(584)>0) THEN
+           IF (IGET(584)>0 .or. NEED_IFI) THEN
 ! dong add missing value to cin
                GRID1 = spval
 !$omp parallel do private(i,j)
               DO J=JSTA,JEND
                  DO I=ISTA,IEND
                  IF(T1D(I,J) < spval) THEN
-                 GRID1(I,J) = EGRID1(I,J)
-                 IF (SUBMODELNAME == 'RTMA') MUCAPE(I,J)=GRID1(I,J)
+                    GRID1(I,J) = EGRID1(I,J)
+                    IF (SUBMODELNAME == 'RTMA') MUCAPE(I,J)=GRID1(I,J)
                  ENDIF
                  ENDDO
                ENDDO
@@ -3395,7 +3423,13 @@
 !               IF (SUBMODELNAME == 'RTMA') THEN
 !                    CALL BOUND(MUCAPE,D00,H99999)
 !               ENDIF
-               if(grib=='grib2') then
+!$omp parallel do private(i,j)
+              DO J=JSTA,JEND
+                 DO I=1,IM
+                    CAPE(I,J) = GRID1(I,J)
+                 ENDDO
+              ENDDO
+               if(IGET(584)>0 .and. grib=='grib2') then
                 cfld=cfld+1
                 fld_info(cfld)%ifld=IAVBLFLD(IGET(584))
                 fld_info(cfld)%lvl=LVLSXML(1,IGET(584))
@@ -3411,7 +3445,7 @@
 
            ENDIF
                 
-           IF (IGET(585)>0) THEN
+           IF (IGET(585)>0 .or. NEED_IFI) THEN
 ! dong add missing value to cin
                GRID1 = spval
 !$omp parallel do private(i,j)
@@ -3432,7 +3466,15 @@
                    ENDIF
                  ENDDO
                ENDDO
-               if(grib=='grib2') then
+
+!$omp parallel do private(i,j)
+               DO J=JSTA,JEND
+                 DO I=1,IM
+                    CIN(I,J) = GRID1(I,J)
+                 ENDDO
+               ENDDO
+
+               if(IGET(585)>0 .and. grib=='grib2') then
                  cfld=cfld+1
                  fld_info(cfld)%ifld=IAVBLFLD(IGET(585))
                  fld_info(cfld)%lvl=LVLSXML(1,IGET(585))

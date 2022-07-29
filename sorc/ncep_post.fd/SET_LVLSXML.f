@@ -47,7 +47,7 @@
 !
       use xml_perl_data, only: param_t
       use ctlblk_mod, only: lsm, spl, nsoil, isf_surface_physics, nfd, htfd, &
-                            petabnd, nbnd
+                            petabnd, nbnd, ifi_nflight, ifi_flight_levels
       use soil,       only: SLDPTH,SLLEVEL
       use rqstfld_mod,only : mxlvl,LVLS,LVLSXML
       implicit none
@@ -187,23 +187,64 @@
       endif
 !
       if(trim(param%fixed_sfc1_type)=='spec_alt_above_mean_sea_lvl') then
-       if(index(param%shortname,"GTG_ON_SPEC_ALT_ABOVE_MEAN_SEA_LVL")<=0) then
-         do j=1, nlevel
+        if(index(param%shortname,"SPECIFIC_IFI_FLIGHT_LEVEL")>0) then
+          do j=1, nlevel
+            iloop411:  do i=1, ifi_nflight
+              if(nint(param%level(j)/10)==nint(ifi_flight_levels(i)/10) )then
+                LVLS(i,ifld)=1
+                LVLSXML(i,ifld)=j
+                ! ! Convert feet to meters for output
+                ! param%level(j) = (param%level(j)*3048)/10000
+                ! if(associated(param%scale_fact_fixed_sfc1)) then
+                !   if(size(param%scale_fact_fixed_sfc1)<j) then
+                !     param%level(j) = param%level(j)*(10**param%scale_fact_fixed_sfc1(1))
+                !   else
+                !     param%level(j) = param%level(j)*(10**param%scale_fact_fixed_sfc1(j))
+                !   endif
+                ! endif
+                ! print *,'level ',j,' converted to ',param%level(j)
+                irec=irec+1
+                exit iloop411
+              endif
+            enddo iloop411
+          enddo
+        else if(index(param%shortname,"IFI_FLIGHT_LEVEL")>0) then
+           ! if(associated(param%level)) then
+           !   deallocate(param%level)
+           ! endif
+           ! allocate(param%level(ifi_nflight))
+           do j=1, ifi_nflight
+             LVLS(j,ifld)=1
+             LVLSXML(j,ifld)=j
+             ! ! Convert feet to meters for output
+             ! param%level(j) = (ifi_flight_levels(j)*3048)/10000
+             ! if(associated(param%scale_fact_fixed_sfc1)) then
+             !   if(size(param%scale_fact_fixed_sfc1)<j) then
+             !     param%level(j) = param%level(j)*(10**param%scale_fact_fixed_sfc1(1))
+             !   else
+             !     param%level(j) = param%level(j)*(10**param%scale_fact_fixed_sfc1(j))
+             !   endif
+             ! endif
+             ! print *,'level ',j,' is ',param%level(j)
+             irec=irec+1
+           enddo
+        elseif(index(param%shortname,"GTG_ON_SPEC_ALT_ABOVE_MEAN_SEA_LVL")<=0) then
+          do j=1, nlevel
         iloop4:  do i=1, NFD
-           if(nint(param%level(j))==nint(HTFD(i)) )then
-            if(HTFD(i)>300.) then
-              LVLS(i,ifld)=1
-            else
-              LVLS(i,ifld)=2
+            if(nint(param%level(j))==nint(HTFD(i)) )then
+             if(HTFD(i)>300.) then
+               LVLS(i,ifld)=1
+             else
+               LVLS(i,ifld)=2
+             endif
+             LVLSXML(i,ifld)=j
+             irec=irec+1
+             exit iloop4
             endif
-            LVLSXML(i,ifld)=j
-            irec=irec+1
-            exit iloop4
-           endif
-         enddo iloop4
-         enddo
-         return
-       endif
+           enddo iloop4
+          enddo
+          return
+         endif
 !      Allow inputs of FD levels from control file. For GTG (EDPARM CATEDR MWTURB)
 !      SET LVLS to 1
        do j=1, nlevel
@@ -277,15 +318,16 @@
              endif
             enddo iloop41
           enddo
-          return
+         return
          endif
          do j=1, nlevel
-            LVLS(j,ifld)=1
-            LVLSXML(j,ifld)=j
-            irec=irec+1
+           LVLS(j,ifld)=1
+           LVLSXML(j,ifld)=j
+           irec=irec+1
          enddo
          return
       endif
+!
 !for hpc tmp at sigma lvl
       if(trim(param%shortname)=='TMP_ON_SIGMA_LVL_HPC') then
         IF(READTHK)THEN   ! EITHER READ DSG THICKNESS
