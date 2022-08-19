@@ -3481,7 +3481,7 @@
     </paramset>
 
     <paramset>
-      <datset>WRFIFI</datset>
+      <datset>IFIFIP</datset>
       <grid_num>4</grid_num>
       <sub_center>ncep_emc</sub_center>
       <version_no>v2003</version_no>

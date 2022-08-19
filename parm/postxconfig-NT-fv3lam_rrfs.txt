@@ -18719,7 +18719,7 @@ top_of_atmos
 ?
 ?
 ?
-WRFIFI
+IFIFIP
 4
 ncep_emc
 v2003
