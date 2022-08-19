@@ -1773,7 +1773,6 @@
                QBND(ista:iend,jsta:jend,NBND), UBND(ista:iend,jsta:jend,NBND),    &
                VBND(ista:iend,jsta:jend,NBND), RHBND(ista:iend,jsta:jend,NBND),   &
                WBND(ista:iend,jsta:jend,NBND))
-
 !
 !     ***BLOCK 5:  BOUNDARY LAYER FIELDS.
 !     
@@ -1792,10 +1791,7 @@
            (IGET(096)>0).OR.(IGET(097)>0).OR.       &
            (IGET(098)>0).OR.(IGET(221)>0) ) THEN
 !
-           allocate(OMGBND(ista:iend,jsta:jend,NBND),PWTBND(ista:iend,jsta:jend,NBND),  &
-                    QCNVBND(ista:iend,jsta:jend,NBND),LVLBND(ista:iend,jsta:jend,NBND), &
-                    LB2(ista:iend,jsta:jend))
-
+         call allocate_cape_arrays
 !        COMPUTE ETA BOUNDARY LAYER FIELDS.
          CALL BNDLYR(PBND,TBND,QBND,RHBND,UBND,VBND,      &
                      WBND,OMGBND,PWTBND,QCNVBND,LVLBND)
@@ -2193,6 +2189,8 @@
          IF(IGET(567)>0)THEN
            FIELD2=.TRUE.
          ENDIF
+         FIELD1 = FIELD1 .or. NEED_IFI
+         FIELD2 = FIELD2 .or. NEED_IFI
 !
          !if(grib=="grib2") print *,'in MISCLN.f,iget(566)=',          &
          !  iget(566), 'iget(567)=',iget(567),'LVLSXML(1,IGET(566)=',  &
@@ -2201,6 +2199,7 @@
 !
          IF(FIELD1.OR.FIELD2)THEN
            ITYPE = 2
+           call allocate_cape_arrays
 !
 !$omp parallel do private(i,j)
            DO J=JSTA,JEND
@@ -3749,6 +3748,8 @@
          IF(FIELD1.OR.FIELD2)THEN
            ITYPE = 2
 
+           call allocate_cape_arrays
+
 !
 !$omp parallel do private(i,j)
            DO J=JSTA,JEND
@@ -4723,4 +4724,14 @@
 !     END OF ROUTINE.
 !     
       RETURN
-      END
+   CONTAINS
+
+     subroutine allocate_cape_arrays
+       if(.not.allocated(OMGBND))  allocate(OMGBND(ista:iend,jsta:jend,NBND))
+       if(.not.allocated(PWTBND))  allocate(PWTBND(ista:iend,jsta:jend,NBND))
+       if(.not.allocated(QCNVBND)) allocate(QCNVBND(ista:iend,jsta:jend,NBND))
+       if(.not.allocated(LVLBND))  allocate(LVLBND(ista:iend,jsta:jend,NBND))
+       if(.not.allocated(LB2))     allocate(LB2(ista:iend,jsta:jend))
+     end subroutine allocate_cape_arrays
+
+   END SUBROUTINE MISCLN
