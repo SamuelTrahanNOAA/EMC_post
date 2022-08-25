@@ -1398,6 +1398,9 @@
           ENDIF
         ENDDO
       ENDDO
+
+      LEND=MIN(LEND,LM-1)
+
 !
 !reverse L order from bottom up for ESRH calculation
 !
