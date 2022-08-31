@@ -118,7 +118,7 @@
               readxml_tim, spval, fullmodelname, submodelname, hyb_sigp, filenameflat, aqfcmaq_on,   &
               numx, run_ifi_tim
       use grib2_module,   only: gribit2,num_pset,nrecout,first_grbtbl,grib_info_finalize
-      use upp_ifi_mod, only: write_ifi_debug_files
+      use upp_ifi_mod, only: write_ifi_debug_files, enable_ifi_smoother
 !- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
       implicit none
 !
@@ -144,7 +144,7 @@
       real,dimension(komax) :: po,th,pv
       namelist/nampgb/kpo,po,kth,th,kpv,pv,fileNameAER,d3d_on,gocart_on,popascal &
                      ,hyb_sigp,rdaod,aqfcmaq_on,vtimeunits,numx &
-                     ,write_ifi_debug_files
+                     ,write_ifi_debug_files,enable_ifi_smoother
       integer      :: itag_ierr
       namelist/model_inputs/fileName,IOFORM,grib,DateStr,MODELNAME,SUBMODELNAME &
                      ,fileNameFlux,fileNameFlat
@@ -725,7 +725,7 @@
             CALL PROCESS(kth,kpv,th(1:kth),pv(1:kpv),iostatusD3D)
             IF(ME == 0) WRITE(6,*)'WRFPOST:  PREPARE TO PROCESS NEXT GRID'
 !
-!           write(0,*)'enter gribit2 before mpi_barrier'
+!           write(0,*)'enter mpi_barrier before gribit2'
             call mpi_barrier(mpi_comm_comp,ierr)
 
 !           if(me==0)call w3tage('bf grb2  ')

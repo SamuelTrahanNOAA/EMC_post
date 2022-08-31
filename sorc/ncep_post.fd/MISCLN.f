@@ -209,6 +209,9 @@
                   USHR6(ista_2l:iend_2u,jsta_2l:jend_2u),VSHR6(ista_2l:iend_2u,jsta_2l:jend_2u))
          allocate(UST(ista_2l:iend_2u,jsta_2l:jend_2u),VST(ista_2l:iend_2u,jsta_2l:jend_2u),     &
                   HELI(ista_2l:iend_2u,jsta_2l:jend_2u,2),FSHR(ista_2l:iend_2u,jsta_2l:jend_2u))
+
+       print *,'start MISCLN'
+
 !
 !      HELICITY AND STORM MOTION.
        iget1 = IGET(162)
@@ -862,7 +865,7 @@
 
          CALL FDLVL(ITYPEFDLVL,T7D,Q7D,U7D,V6D,P7D,ICINGFD,AERFD)
 !     
-         DO 10 IFD = 1,NFD
+         loop_10: DO IFD = 1,NFD
 !
 !           FD LEVEL TEMPERATURE.
             iget1 = IGET(059)
@@ -1330,7 +1333,7 @@
                ENDIF
             ENDIF
 
- 10      CONTINUE
+         END DO loop_10
          DEALLOCATE(T7D,Q7D,U7D,V6D,P7D,ICINGFD,AERFD)
       ENDIF
 
@@ -1784,7 +1787,7 @@
            (IGET(090)>0).OR.(IGET(075)>0).OR.       &
            (IGET(109)>0).OR.(IGET(110)>0).OR.       &
            (IGET(031)>0).OR.(IGET(032)>0).OR.       &
-           (IGET(573)>0).OR.                        &
+           (IGET(573)>0).OR. NEED_IFI    .OR.       &
            (IGET(107)>0).OR.(IGET(091)>0).OR.       &
            (IGET(092)>0).OR.(IGET(093)>0).OR.       &
            (IGET(094)>0).OR.(IGET(095)>0).OR.       &
@@ -1805,7 +1808,7 @@
 
 !     
 !        LOOP OVER NBND BOUNDARY LAYERS.
-         DO 20 LBND = 1,NBND
+         boundary_layer_loop: DO LBND = 1,NBND
 !     
 !           BOUNDARY LAYER PRESSURE.
             IF (IGET(067)>0) THEN
@@ -2116,7 +2119,7 @@
             ENDIF
 !
 !        END OF ETA BOUNDARY LAYER LOOP.
- 20      CONTINUE
+         END DO boundary_layer_loop
          deallocate(OMGBND,PWTBND,QCNVBND)
 !     
 !        BEST LIFTED INDEX FROM BOUNDARY LAYER FIELDS.
@@ -2189,15 +2192,14 @@
          IF(IGET(567)>0)THEN
            FIELD2=.TRUE.
          ENDIF
-         FIELD1 = FIELD1 .or. NEED_IFI
-         FIELD2 = FIELD2 .or. NEED_IFI
 !
          !if(grib=="grib2") print *,'in MISCLN.f,iget(566)=',          &
          !  iget(566), 'iget(567)=',iget(567),'LVLSXML(1,IGET(566)=',  &
          !  LVLSXML(1,IGET(566)),'LVLSXML(1,IGET(567)=',               &
          !  LVLSXML(1,IGET(567)),'field1=',field1,'field2=',field2
 !
-         IF(FIELD1.OR.FIELD2)THEN
+         IF(FIELD1.OR.FIELD2.OR.NEED_IFI)THEN
+           print *,'should process cape here'
            ITYPE = 2
            call allocate_cape_arrays
 !
@@ -2209,7 +2211,7 @@
              ENDDO
            ENDDO
 !
-           DO 80 LBND = 1,NBND
+           loop_80: DO LBND = 1,NBND
            CALL CALTHTE(PBND(ista,jsta,LBND),TBND(ista,jsta,LBND),        &
                         QBND(ista,jsta,LBND),EGRID1)
 !$omp parallel do private(i,j)
@@ -2224,14 +2226,14 @@
                ENDIF
              ENDDO
            ENDDO
- 80        CONTINUE
+           END DO loop_80
 !
            DPBND = 0.
            CALL CALCAPE(ITYPE,DPBND,P1D,T1D,Q1D,LB2,EGRID1,   &
                         EGRID2,EGRID3,EGRID4,EGRID5) 
 
 !
-           IF(IGET(566)>0) THEN
+           IF(IGET(566)>0 .or. NEED_IFI) THEN
              print *,"STORE CAPE"
               GRID1=spval
 !$omp parallel do private(i,j)
@@ -2249,8 +2251,7 @@
               ENDDO
            ENDIF
 
-           IF(IGET(567)>0) THEN
-             print *,"STORE CIN"
+           IF(IGET(567)>0 .or. NEED_IFI) THEN
              GRID1=spval
 !$omp parallel do private(i,j)
              DO J=JSTA,JEND
@@ -2280,7 +2281,7 @@
              endif
            ENDIF
 !
-           IF (IGET(567) > 0) THEN
+           IF (IGET(567) > 0 .or. NEED_IFI) THEN
 ! dong add missing value for CIN
               GRID1=spval
 !$omp parallel do private(i,j)
@@ -2291,6 +2292,7 @@
              ENDDO
 !
              CALL BOUND(GRID1,D00,H99999)
+             print *,"STORE CIN"
 !
 !$omp parallel do private(i,j)
              DO J=JSTA,JEND
@@ -2299,7 +2301,9 @@
                  CIN(I,J) = GRID1(I,J)
                ENDDO
              ENDDO
-!
+           ENDIF
+
+           IF(IGET(567) > 0) THEN
              if(grib=='grib2') then
               cfld=cfld+1
               fld_info(cfld)%ifld=IAVBLFLD(IGET(567))
@@ -3394,6 +3398,7 @@
 !
          IF(FIELD1.OR.FIELD2.OR.NEED_IFI)THEN
            ITYPE = 1
+           call allocate_cape_arrays
 !
 !$omp parallel do private(i,j)
            DO J=JSTA,JEND
