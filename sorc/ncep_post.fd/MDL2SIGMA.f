@@ -411,9 +411,9 @@
 !hc        loop_220: DO NN=1,NHOLD
 !hc        I=IHOLD(NN)
 !hc        J=JHOLD(NN)
-        loop_220: DO J=JSTA,JEND      ! Moorthi on Nov 26 2014
+        loop_220_j: DO J=JSTA,JEND      ! Moorthi on Nov 26 2014
 !       loop_220: DO J=JSTA_2L,JEND_2U
-        loop_220: DO I=ISTA,IEND
+        loop_220_i: DO I=ISTA,IEND
         LL=NL1X(I,J)
 !---------------------------------------------------------------------
 !***  VERTICAL INTERPOLATION OF GEOPOTENTIAL, TEMPERATURE, SPECIFIC
@@ -557,7 +557,8 @@
 	  QG1(I,J)=0.
           CFRSIG(I,J)=0.
         END IF
-        ENDDO loop_220
+        ENDDO loop_220_i
+        ENDDO loop_220_j
 !
 ! OBTAIN GEOPOTENTIAL AND KH ON INTERFACES 
        DO J=JSTA_2L,JEND_2U

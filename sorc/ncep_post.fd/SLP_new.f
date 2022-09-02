@@ -30,7 +30,6 @@
 !   21-07-07  J  Meng - 2D DECOMPOSITION
 !   21-09-25  W Meng - Further modification for restricting computation 
 !                      from undefined grids.
-!   22-09-01  Sam Trahan - removed a goto and commented-out line number do loops
 !
 ! USAGE:  CALL SLPSIG FROM SUBROUITNE ETA2P
 !
@@ -198,7 +197,7 @@
         LHMNT = LXXX
       end if
    
-      if_lhmnt_ne_lsmp1: IF(.not. (LHMNT == LSMP1)) THEN ! was "goto 325"
+      IF(LHMNT == LSMP1) GO TO 325
 
 !      print*,'Debug in SLP: LHMNT A ALLREDUCE=',LHMNT
 !***
@@ -209,7 +208,7 @@
         KMN      = 0
         KMNTM(L) = 0
         KOUNT    = 0
-!       loop_240: DO J=JSTA_M2,JEND_M2
+!       DO 240 J=JSTA_M2,JEND_M2
         DO J=JSTA_M,JEND_M
           DO I=ISTA_M,IEND_M
            if(PSLP(I,J)<spval) then
@@ -482,7 +481,7 @@ LOOP320:DO KM=1,KMM
 !HC EXPERIMENT
        end if ! spval
 ENDDO LOOP320
-
+ 320  CONTINUE
 !
 !***  WHEN SEA LEVEL IS BELOW THE LOWEST OUTPUT PRESSURE LEVEL,
 !***  SOLVE THE HYDROSTATIC EQUATION BY CHOOSING A TEMPERATURE
@@ -493,13 +492,13 @@ ENDDO LOOP320
 !
 !      TOTAL=(IM-2)*(JM-4)
 !
-!HC      loop_340: DO LP=LSM,1,-1
-!      IF(KOUNT==TOTAL) RETURN
+!HC      DO 340 LP=LSM,1,-1
+!      IF(KOUNT==TOTAL)GO TO 350
 !HC MODIFICATION FOR SMALL HILL HIGH PRESSURE SITUATION
 !HC IF SURFACE PRESSURE IS CLOSER TO SEA LEVEL THAN LWOEST
 !HC OUTPUT PRESSURE LEVEL, USE SURFACE PRESSURE TO DO EXTRAPOLATION
 
-      ENDIF if_lhmnt_ne_lsmp1 ! 325 CONTINUE
+ 325  CONTINUE 
       LP = LSM
       DO J=JSTA,JEND
         DO I=ISTA,IEND
@@ -552,8 +551,9 @@ ENDDO LOOP320
 
         enddo
       enddo
-!HC  ENDDO loop_340
+!HC  340 CONTINUE
 !
+! 350 CONTINUE
 !--------------------------------------------------------------------
       RETURN
       END
