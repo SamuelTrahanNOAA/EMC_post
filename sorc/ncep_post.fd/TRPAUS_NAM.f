@@ -30,7 +30,6 @@
 !> 2002-04-23 | Mike Baldwin  | WRF Version
 !> 2019-10-30 | Bo Cui        | ReMOVE "GOTO" STATEMENT
 !> 2021-09-13 | JESSE MENG    | 2D DECOMPOSITION
-!> 2022-09-01 | Sam Trahan    | removed line number do loops and gotos
 !>
 !> @author Russ Treadon W/NP2 @date 1992-12-22
       SUBROUTINE TRPAUS(PTROP,TTROP,ZTROP,UTROP,VTROP,SHTROP)
@@ -98,16 +97,16 @@
         TLAPSE(L) = -DELT/DZ
 !
         IF ((TLAPSE(L)<CRTLAP).AND.(PM<PSTART)) THEN 
-          IF (L == 2 .AND. TLAPSE(L) < CRTLAP) EXIT loop_17
+          IF (L == 2 .AND. TLAPSE(L) < CRTLAP) GOTO15
           DZ2(L+1) = 0.
 !
-          loop_17: DO LL=L,3,-1
+          DO 17 LL=L,3,-1
           DZ2(LL) = 0.
           DELT2(LL) = 0.
           TLAPSE2(LL) = 0.
           DZ2(LL) = (2./3.)*(ZINT(I,J,LL-2)-ZINT(I,J,L+1))      
           IF ((DZ2(LL) > 2000.) .AND.                       &
-              (DZ2(LL+1) > 2000.)) EXIT loop_17
+              (DZ2(LL+1) > 2000.)) GO TO 15
           DELT2(LL) = T(I,J,LL-2)-T(I,J,L)
           TLAPSE2(LL) = -DELT2(LL)/DZ2(LL)
 !
@@ -115,12 +114,12 @@
             CYCLE loopL
           ENDIF
 !
-          ENDDO loop_17
+   17     CONTINUE 
         ELSE
           CYCLE loopL       
         ENDIF 
 !
-        PTROP(I,J)  = D50*(PINT(I,J,L)+PINT(I,J,L+1))
+   15   PTROP(I,J)  = D50*(PINT(I,J,L)+PINT(I,J,L+1))
         TTROP(I,J)  = T(I,J,L)
         ZTROP(I,J)= 0.5*(ZINT(I,J,L)+ZINT(I,J,L+1))
 !

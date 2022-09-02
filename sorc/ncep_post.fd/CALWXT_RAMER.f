@@ -11,7 +11,6 @@
 ! PROGRAM HISTORY LOG:
 !   10-30-19  Bo CUI - Remove "GOTO" statement
 !   21-10-31  JESSE MENG - 2D DECOMPOSITION
-!   22-09-01  Sam Trahan - removed line number do loops and gotos
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
       SUBROUTINE CALWXT_RAMER_POST(T,Q,PMID,PINT,LMH,PREC,PTYP)
@@ -53,7 +52,6 @@
       real RHMAX,TWMAX,PTOP,dpdrh,twtop,rhtop,wgt1,wgt2,    &
            rhavg,dtavg,dpk,ptw,rate,pbot,qc, b
       real,external :: xmytw_post,esat,tdofesat
-      logical :: commence_process
 !
       DATA iflag / -9/
 !
@@ -80,8 +78,8 @@
       enddo
 
 !  BIG LOOP
-      loop_800_j: DO J=JSTA,JEND
-      loop_800_i: DO I=ISTA,IEND
+      DO 800 J=JSTA,JEND
+      DO 800 I=ISTA,IEND
 !
 !   SKIP THIS POINT IF NO PRECIP THIS TIME STEP
 !
@@ -108,7 +106,7 @@
 !     toodry=((Rhq(I,J,1)<rhprcp).and.1)
       pbot = pq(I,J,1)
       NQ=LMH(I,J)
-      loop_10: DO L = 1, nq
+      DO 10 L = 1, nq
 !         xxx = tdofesat(esat(tq(I,J,L),flag,flg)*rhq(I,J,L),flag,flg)
           xxx = max(0.0,min(pq(i,j,l),esat(tq(I,J,L),flag,flg))*rhq(I,J,L))
           xxx = tdofesat(xxx,flag,flg)
@@ -171,7 +169,7 @@
               END IF
           END IF
 !
-      ENDDO loop_10
+   10 CONTINUE
 
 !
 !     Gross checks for liquid and solid precip which dont require generating level.
@@ -214,9 +212,9 @@
 !
 
 !     Calculate temp and wet-bulb ranges below precip generating level.
-      loop_20: DO L = 1, k1
+      DO 20 L = 1, k1
           twmax = amax1(twq(i,j,l),twmax)
-      ENDDO loop_20
+   20 CONTINUE
 !
 !     Gross check for solid precip, initialize ice fraction.
       IF (i==1.and.j==1) WRITE (*,*) 'twmax=',twmax,twice,'twtop=',twtop
@@ -234,20 +232,16 @@
       END IF
 !
 !     Loop downward through sounding from highest precip generating level.
-      loop_30: DO
+   30 CONTINUE
 !
-        commence_process = .false.
-
       IF (trace) PRINT *, ptop, twtop - 273.15, icefrac,'me=',me
       IF (trace) WRITE (*,*) 'P,Tw,frac,twq(I,J,k1)', ptop,             &
      &    twtop - 273.15, icefrac, twq(I,J,k1),'me=',me
       IF (icefrac>=1.0) THEN  !  starting as all ice
           IF (trace) WRITE (*,*) 'ICEFRAC=1', icefrac
 !          print *, 'twq twmwelt twtop ', twq(I,J,k1), twmelt, twtop
-          check_commence_melt: IF ( &
-             .not.(twq(I,J,k1)<twmelt) &            ! can commence melting
-             .and. .not. (twq(I,J,k1)==twtop)) THEN ! one is not equal twmelt
-            commence_process = .true.
+          IF (twq(I,J,k1)<twmelt) GO TO 40       ! cannot commence melting
+          IF (twq(I,J,k1)==twtop) GO TO 40        ! both equal twmelt, nothing h
           wgt1 = (twmelt-twq(I,J,k1)) / (twtop-twq(I,J,k1))
           rhavg = rhq(I,J,k1) + wgt1 * (rhtop-rhq(I,J,k1)) / 2
           dtavg = (twmelt-twq(I,J,k1)) / 2
@@ -255,19 +249,16 @@
 !         mye=emelt*(1.0-(1.0-Rhavg)*efac)
           mye = emelt * rhavg ** efac
           icefrac = icefrac + dpk * dtavg / mye
-          IF (trace) THEN
-               WRITE (*,*)                                       &
+          IF (trace) WRITE (*,*)                                       &
      &        'HERE8: wgt1,rhavg,dtavg,dpk,mye,icefrac', wgt1, rhavg,   &
      &        dtavg, dpk, mye, icefrac,'me=',me
-          ENDIF
-          ENDIF check_commence_melt
       ELSE IF (icefrac<=0.0) THEN     !  starting as all liquid
           IF (trace) WRITE (*,*) 'HERE9: twtop,twq(I,J,k1),k1,lll'     &
      &    , twtop, twq(I,J,k1), k1, lll
           lll = 1
 !         If (Twq(I,J,k1)<=Twice) icefrac=1.0 ! autoconvert
-          check_commence_freeze: IF (.not.(twq(I,J,k1)>twice)) THEN        ! can commence freezing
-            commence_process = .true.
+!         Goto 1020
+          IF (twq(I,J,k1)>twice) GO TO 40        ! cannot commence freezing
           IF (twq(I,J,k1)==twtop) THEN
               wgt1 = 0.5
           ELSE
@@ -279,11 +270,8 @@
 !         mye=emelt*(1.0-(1.0-Rhavg)*efac)
           mye = emelt * rhavg ** efac
           icefrac = icefrac + dpk * dtavg / mye
-          IF (trace) THEN
-              WRITE (*,*) 'HERE10: wgt1,rhtop,rhq(I,J,k1),dtavg', &
+          IF (trace) WRITE (*,*) 'HERE10: wgt1,rhtop,rhq(I,J,k1),dtavg', &
               wgt1, rhtop, rhq(I,J,k1), dtavg,'me=',me
-          ENDIF
-          ENDIF check_commence_freeze
       ELSE IF ((twq(I,J,k1)<=twmelt).and.(twq(I,J,k1)<twmelt)) THEN ! mix
           rhavg = (rhq(I,J,k1)+rhtop) / 2
           dtavg = twmelt - (twq(I,J,k1)+twtop) / 2
@@ -295,8 +283,7 @@
           IF (trace) WRITE (*,*) 'HERE11: twq(i,j,K1),twtop',        &
               twq(i,j,k1),twtop,'me=',me
       ELSE      ! mix where Tw curve crosses twmelt in layer
-          check_eq_twmelt: IF(.not. (twq(I,J,k1)==twtop)) THEN   ! one not equal twmelt
-            commence_process = .true.
+          IF (twq(I,J,k1)==twtop) GO TO 40   ! both equal twmelt, nothing h
           wgt1 = (twmelt-twq(I,J,k1)) / (twtop-twq(I,J,k1))
           wgt2 = 1.0 - wgt1
           rhavg = rhtop + wgt2 * (rhq(I,J,k1)-rhtop) / 2
@@ -313,53 +300,36 @@
           IF (icefrac<=0.0) THEN
 !             If (Twq(I,J,k1)<=Twice) icefrac=1.0 ! autoconvert
 !             Goto 1020
-              IF (twq(I,J,k1)>twice) then    ! cannot commence freezin
-                commence_process = .false.
-              ELSE
-                wgt1 = (twice-twq(I,J,k1)) / (twtop-twq(I,J,k1))
-                dtavg = twmelt - (twq(I,J,k1)+twice) / 2
-                IF (trace) THEN
-                  WRITE (*,*) 'IN IF','me=',me
-                ENDIF
-              ENDIF
+              IF (twq(I,J,k1)>twice) GO TO 40    ! cannot commence freezin
+              wgt1 = (twice-twq(I,J,k1)) / (twtop-twq(I,J,k1))
+              dtavg = twmelt - (twq(I,J,k1)+twice) / 2
+              IF (trace) WRITE (*,*) 'IN IF','me=',me
           ELSE
               dtavg = (twmelt-twq(I,J,k1)) / 2
               IF (trace) WRITE (*,*) 'IN ELSE','me=',me
           END IF
-          IF (trace) THEN
-            WRITE (*,*) 'NEW ICE FRAC CALC','me=',me
-          ENDIF
+          IF (trace) WRITE (*,*) 'NEW ICE FRAC CALC','me=',me
           rhavg = rhq(I,J,k1) + wgt1 * (rhtop-rhq(I,J,k1)) / 2
           dpk = wgt1 * alog(pq(I,J,k1)/ptop)     !lin  dpk=wgt1*(Pq(k1)-Ptop)
 !         mye=emelt*(1.0-(1.0-Rhavg)*efac)
           mye = emelt * rhavg ** efac
           icefrac = icefrac + dpk * dtavg / mye
-          IF (trace) THEN
-            WRITE (*,*) 'HERE13: icefrac,k1,dtavg,rhavg',      &
-            icefrac, k1, dtavg, rhavg,'me=',me
-          ENDIF
-        ENDIF check_eq_twmelt
+          IF (trace) WRITE (*,*) 'HERE13: icefrac,k1,dtavg,rhavg',      &
+              icefrac, k1, dtavg, rhavg,'me=',me
       END IF
 !
-      if(commence_process) then
-        icefrac = amin1(1.0,amax1(icefrac,0.0))
-        IF (i==1.and.j==1) THEN
-          WRITE (*,*) 'NEW ICEFRAC:', icefrac, icefrac,'me=',me
-        ENDIF
-      endif
+      icefrac = amin1(1.0,amax1(icefrac,0.0))
+      IF (i==1.and.j==1) WRITE (*,*) 'NEW ICEFRAC:', icefrac, icefrac,'me=',me
 !
 !     Get next level down if there is one, loop back.
-      IF (k1>1) THEN
+   40 IF (k1>1) THEN
           IF (trace) WRITE (*,*) 'LOOPING BACK','me=',me
           twtop = twq(I,J,k1)
           ptop = pq(I,J,k1)
           rhtop = rhq(I,J,k1)
           k1 = k1 - 1
-          CYCLE loop_30
-      ELSE
-          EXIT loop_30
-      ENDIF
-      ENDDO loop_30
+          GO TO 30
+      END IF
 !
 !
 !     Determine precip type based on snow fraction and surface wet-bulb.
@@ -513,7 +483,7 @@
       s = (ew-ed) / (k-kd)
       kw = (k*fp+kd*s) / (fp+s)
 !
-      loop_10: DO l = 1, 5
+      DO 10 l = 1, 5
           ew = c0 - c1 * kw - c2 / kw
           IF (ew<-14.0.or.ew>7.0) RETURN
           ew = exp(ew)
@@ -521,7 +491,7 @@
           IF (abs(de/ew)<1E-5) exit     
           s = ew * (c1-c2/(kw*kw)) - fp
           kw = kw - de / s
-      ENDDO loop_10
+   10 CONTINUE
 !
 !      print *, 'kw ', kw
       IF (cflag/=0) THEN
