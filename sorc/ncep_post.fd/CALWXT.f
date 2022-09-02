@@ -11,7 +11,6 @@
 !     19-10-30  Bo CUI - REMOVE "GOTO" STATEMENT
 !     21-07-26  Wen Meng - Restrict computation from undefined grids
 !     21-10-31  JESSE MENG - 2D DECOMPOSITION
-!     22-09-01  Sam Trahan - removed line number do loops
 !                              
 !
 !     ROUTINE TO COMPUTE PRECIPITATION TYPE USING A DECISION TREE
@@ -100,8 +99,8 @@
 
 !
 !!$omp  parallel do private(a,lmhk,pkl,psfck,qkl,tdchk,tdkl,tdpre,tkl)
-      loop_800_j: DO J=JSTA,JEND
-      loop_800_i: DO I=ISTA,IEND
+      DO 800 J=JSTA,JEND
+      DO 800 I=ISTA,IEND
       LMHK=NINT(LMH(I,J))
 !
 !   SKIP THIS POINT IF NO PRECIP THIS TIME STEP 
@@ -120,11 +119,11 @@
       jcontinue=.true.
       do while (jcontinue)
 
-      TCOLD(I,J) = T(I,J,LMHK)
+  760 TCOLD(I,J) = T(I,J,LMHK)
       TWARM(I,J) = T(I,J,LMHK)
       LICEE(I,J) = LMHK
 !
-      loop_775: DO L=1,LMHK
+      DO 775 L=1,LMHK
       QKL = Q(I,J,L)
       QKL = MAX(H1M12,QKL)
       TKL = T(I,J,L)
@@ -142,7 +141,7 @@
       IF (TDPRE<TDCHK.AND.TKL>TWARM(I,J)) TWARM(I,J)=TKL
       IF (TDPRE<TDCHK.AND.L<LICEE(I,J)) LICEE(I,J)=L
       ENDIF
-      ENDDO loop_775
+  775 CONTINUE
 !
 !    IF NO SAT LAYER AT DEW POINT DEP=TDCHK, INCREASE TDCHK
 !     AND START AGAIN (BUT DON'T MAKE TDCHK > 6)
@@ -153,13 +152,12 @@
         jcontinue=.false.
       ENDIF
       enddo     ! enddo jcontinue
-      ENDDO loop_800_i
-      ENDDO loop_800_j
+  800 CONTINUE
 !
 !    LOWEST LAYER T
 !
-      loop_850_j: DO J=JSTA,JEND
-      loop_850_i: DO I=ISTA,IEND
+      DO 850 J=JSTA,JEND
+      DO 850 I=ISTA,IEND
       KARR(I,J)=0
       IF (PREC(I,J)<=PTHRESH) cycle    
       LMHK=NINT(LMH(I,J))
@@ -187,8 +185,7 @@
           ENDIF
       ENDIF
       KARR(I,J)=1
-      ENDDO loop_850_i
-      ENDDO loop_850_j
+  850 CONTINUE
 !
 !   COMPUTE WET BULB ONLY AT POINTS THAT NEED IT
 !
@@ -199,8 +196,8 @@
 !    & private(area1,areap4,areas8,dzkl,ifrzl,iwrml,lice,          &
 !    &         lmhk,pintk1,pintk2,pm150,psfck,surfc,surfw,         &
 !    &         tlmhk,twrmk)
-      loop_1900_j: DO J=JSTA,JEND
-      loop_1900_i: DO I=ISTA,IEND
+      DO 1900 J=JSTA,JEND
+      DO 1900 I=ISTA,IEND
 !       IF (I == 324 .AND. J == 390) THEN
 !          LMHK=NINT(LMH(I,J))
 !          DO L=LMHK,1,-1          
@@ -232,11 +229,11 @@
         SURFW =D00
         SURFC =D00
 !
-        loop_1945: DO L=LMHK,LICE,-1
+        DO 1945 L=LMHK,LICE,-1
         DZKL=ZINT(I,J,L)-ZINT(I,J,L+1)
         AREA1=(TWET(I,J,L)-269.15)*DZKL
         IF (TWET(I,J,L)>=269.15) AREAP4=AREAP4+AREA1
-        ENDDO loop_1945
+ 1945   CONTINUE
 !
         IF (AREAP4<3000.0) THEN
 !             TURN ON THE FLAG FOR
@@ -253,7 +250,7 @@
         PINTK1=PSFCK
         PM150=PSFCK-15000.
 !
-        loop_1955: DO L=LMHK,1,-1
+        DO 1955 L=LMHK,1,-1
         PINTK2=PINT(I,J,L)
         IF(PINTK1<PM150) THEN         
           PINTK1=PINTK2
@@ -268,7 +265,7 @@
           AREAS8=AREAS8+AREA1
           PINTK1=PINTK2
         ENDIF
-        ENDDO loop_1955
+ 1955   CONTINUE
 !
 !     SURFW IS THE AREA OF TWET ABOVE FREEZING BETWEEN THE GROUND
 !       AND THE FIRST LAYER ABOVE GROUND BELOW FREEZING
@@ -278,7 +275,7 @@
         IFRZL=0
         IWRML=0
 !
-        loop_2050: DO L=LMHK,1,-1
+        DO 2050 L=LMHK,1,-1
         IF (IFRZL==0.AND.T(I,J,L)<273.15) IFRZL=1
         IF (IWRML==0.AND.T(I,J,L)>=TWRMK) IWRML=1
 !
@@ -288,7 +285,7 @@
           IF(IFRZL==0.AND.TWET(I,J,L)>=273.15)SURFW=SURFW+AREA1
           IF(IWRML==0.AND.TWET(I,J,L)<=273.15)SURFC=SURFC+AREA1
         ENDIF
-        ENDDO loop_2050
+ 2050   CONTINUE
         IF(SURFC<-3000.0.OR.   &
           (AREAS8<-3000.0.AND.SURFW<50.0)) THEN
 !             TURN ON THE FLAG FOR
@@ -316,8 +313,7 @@
           IWX(I,J)=IWX(I,J)+8
         ENDIF
       ENDIF
-      ENDDO loop_1900_i
-      ENDDO loop_1900_j
+ 1900 CONTINUE
 !---------------------------------------------------------
       DEALLOCATE (TWET)
 
