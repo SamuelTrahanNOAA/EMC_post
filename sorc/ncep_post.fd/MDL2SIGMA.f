@@ -22,6 +22,7 @@
 !!   21-03-11  B Cui - change local arrays to dimension (im,jsta:jend)
 !!   21-10-14  J MENG - 2D DECOMPOSITION
 !!   2022-09-01 S Trahan - fixed bugs where extreme atmospheric conditions can cause out-of-bounds access
+!>   2022-09-01 S Trahan - removed line number do loops
 !!  
 !! USAGE:    CALL MDL2P
 !!   INPUT ARGUMENT LIST:
@@ -209,8 +210,8 @@
         ENDDO
        END DO	
        END DO
-       DO 167 J=JSTA,JEND
-        DO 167 I=ISTA_2L,IEND_2U
+       loop_167_j: DO J=JSTA,JEND
+        loop_167_i: DO I=ISTA_2L,IEND_2U
 	 DONEFSL1=.FALSE.
          PFSIGO=PTSIGO
          APFSIGO=LOG(PFSIGO)
@@ -306,7 +307,8 @@
      &      AKH(I,J)=EXCH_H(I,J,LL-1)+(EXCH_H(I,J,LL-1)                 &
      &	    -EXCH_H(I,J,LL-2))*FACT 
 	 END IF    
- 167    CONTINUE
+        ENDDO loop_167_i
+        ENDDO loop_167_j
 ! OUTPUT FIRST LAYER GEOPOTENTIAL
 !       GEOPOTENTIAL (SCALE BY GI)
         IF (IGET(205)>0) THEN
@@ -353,7 +355,7 @@
 !***  INTERPOLATION ABOVE GROUND NOW.
 !***
 !
-        DO 310 LP=1,LSIG
+        loop_310: DO LP=1,LSIG
         NHOLD=0
 !
         DO J=JSTA_2L,JEND_2U
@@ -401,17 +403,17 @@
         ENDDO
         ENDDO
 !
-!mptest        IF(NHOLD==0)GO TO 310
+!mptest        IF(NHOLD==0) CYCLE loop_310
 !
 !$omp  parallel do private(i,j,ll,llmh,psigo,apsigo,fact,dum,pl,     &
 !$omp &         zl,tl,ql,ai,bi,qsat,rhl,tvrl,tvrblo,tblo,tmt0,       &
 !$omp &         qblo,pnl1,fac,ahf)
-!hc        DO 220 NN=1,NHOLD
+!hc        loop_220: DO NN=1,NHOLD
 !hc        I=IHOLD(NN)
 !hc        J=JHOLD(NN)
-        DO 220 J=JSTA,JEND      ! Moorthi on Nov 26 2014
-!       DO 220 J=JSTA_2L,JEND_2U
-        DO 220 I=ISTA,IEND
+        loop_220: DO J=JSTA,JEND      ! Moorthi on Nov 26 2014
+!       loop_220: DO J=JSTA_2L,JEND_2U
+        loop_220: DO I=ISTA,IEND
         LL=NL1X(I,J)
 !---------------------------------------------------------------------
 !***  VERTICAL INTERPOLATION OF GEOPOTENTIAL, TEMPERATURE, SPECIFIC
@@ -555,7 +557,7 @@
 	  QG1(I,J)=0.
           CFRSIG(I,J)=0.
         END IF
-  220   CONTINUE
+        ENDDO loop_220
 !
 ! OBTAIN GEOPOTENTIAL AND KH ON INTERFACES 
        DO J=JSTA_2L,JEND_2U
@@ -791,9 +793,9 @@
         ENDDO
         ENDDO
 !
-        DO 230 J=JSTA,JEND
-!        DO 230 I=1,IM-MOD(j,2)
-        DO 230 I=ISTA,IEND-MOD(j,2) !Jesse 20211014
+        loop_230_j: DO J=JSTA,JEND
+!        loop_230_i: DO I=1,IM-MOD(j,2)
+        loop_230_i: DO I=ISTA,IEND-MOD(j,2) !Jesse 20211014
 
          LLMH = NINT(LMH(I,J))
 
@@ -864,7 +866,8 @@
           IF(UH(I,J,LLMH)<SPVAL)USL(I,J)=UH(I,J,LLMH)
 	  IF(VH(I,J,LLMH)<SPVAL)VSL(I,J)=VH(I,J,LLMH)
         END IF
-  230   CONTINUE
+        ENDDO loop_230_i
+        ENDDO loop_230_j
         JJB=JSTA 
         IF(MOD(JSTA,2)==0)JJB=JSTA+1
         JJE=JEND
@@ -904,8 +907,8 @@
          ENDDO
          ENDDO
 !
-         DO 231 J=JSTA,JEND_M
-         DO 231 I=ISTA,IEND_M
+         loop_231_j: DO J=JSTA,JEND_M
+         loop_231_i: DO I=ISTA,IEND_M
 	  PDV=0.25*(PINT(I,J,LP1)+PINT(I+1,J,LP1)                       &
              +PINT(I,J+1,LP1)+PINT(I+1,J+1,LP1))
           PSIGO=PTSIGO+ASIGO(LP)*(PDV-PTSIGO)
@@ -942,7 +945,8 @@
            IF(UH(I,J,LLMH)<SPVAL)USL(I,J)=UH(I,J,LLMH)
 	   IF(VH(I,J,LLMH)<SPVAL)VSL(I,J)=VH(I,J,LLMH)
           END IF
-  231   CONTINUE
+        ENDDO LOOP_231_I
+        ENDDO LOOP_231_J
 	
 	
 	
@@ -1253,7 +1257,7 @@
          ENDIF
 !***  END OF MAIN VERTICAL LOOP
 !     
-  310   CONTINUE
+        ENDDO loop_310
 !***  ENDIF FOR IF TEST SEEING IF WE WANT ANY OTHER VARIABLES
 !
       ENDIF

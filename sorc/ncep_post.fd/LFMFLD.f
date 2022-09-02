@@ -39,6 +39,7 @@
 !> 2019-10-30 | Bo Cui       | Remove "GOTO" statement
 !> 2020-11-10 | Jesse Meng   | Use UPP_PHYSICS Module
 !> 2021-10-14 | JESSE MENG   | 2D DECOMPOSITION
+!> 2022-09-01 | Sam Trahan      | removed line number do loop
 !>
 !> @author Russ Treadon W/NP2 @date 1992-12-22
       SUBROUTINE LFMFLD(RH3310,RH6610,RH3366,PW3310)
@@ -72,8 +73,8 @@
 !
 !     LOOP OVER HORIZONTAL GRID.
 !     
-      DO 30 J=JSTA,JEND
-      DO 30 I=ISTA,IEND
+      loop_30_j: DO J=JSTA,JEND
+      loop_30_i: DO I=ISTA,IEND
 !     
 !        ZERO VARIABLES.
          RH3310(I,J) = D00
@@ -92,7 +93,7 @@
 !     
 !        ACCULMULATE RELATIVE HUMIDITIES AND PRECIPITABLE WATER.
 !
-         DO 10 L = LLMH,1,-1
+         loop_10: DO L = LLMH,1,-1
 !     
 !           GET P, Z, T, AND Q AT MIDPOINT OF ETA LAYER.
             ALPM = D50*(ALPINT(I,J,L)+ALPINT(I,J,L+1))
@@ -142,7 +143,7 @@
                RH3366(I,J) = RH3366(I,J) + RH*DZ
             ENDIF
 !
- 10      CONTINUE
+         ENDDO loop_10
 !     
 !        NORMALIZE TO GET MEAN RELATIVE HUMIDITIES.  AT
 !        ONE TIME WE DIVIDED PRECIPITABLE WATER BY DENSITY
@@ -164,10 +165,10 @@
          ELSE
             RH3366(I,J) = SPVAL
          ENDIF
- 30   CONTINUE
+      ENDDO loop_30_i
+      ENDDO loop_30_j
 !     
 !     
 !     END OF ROUTINE.
 !     
-      RETURN
-      END
+      END SUBROUTINE LFMFLD

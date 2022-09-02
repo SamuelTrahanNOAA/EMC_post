@@ -39,6 +39,7 @@
 !> 2000-01-04 | Jim Tuccillo | MPI Version
 !> 2021-07-26 | W Meng       | Restrict computation from undefined grids
 !> 2021-10-31 | J Meng       | 2D Decomposition
+!> 2022-09-01 | Sam Trahan   | removed line number do loop
 !>
 !> @author Jim Tuccillo W/NP2 @date 1990-05-19
       SUBROUTINE DEWPOINT( VP, TD)
@@ -87,13 +88,13 @@
       RGS   = 1.E0
       RVP   = RVP1-RDVP
 !
-      DO 20 NN=1,NT
+      loop_20: DO NN=1,NT
         RVP=RVP+RDVP
         RLVP=LOG(RVP)-RLOG3-RAPB
 !     ***** ENTER NEWTON ITERATION LOOP
         jcontinue=.true.
         do while (jcontinue)
-   10   RN=RA*LOG(RGS)-RAPB*RGS-RLVP
+        RN=RA*LOG(RGS)-RAPB*RGS-RLVP
 !          THAT WAS VALUE OF FUNCTION
 !          NOW GET ITS DERIVATIVE
         RD=(RA/RGS)-RAPB
@@ -108,15 +109,15 @@
         ENDDO
 !          *****
 !          HAVE ACCURATE ENUF VALUE OF RGS=T3/DEWPOINT.
-   15   RT=RT3/RGS
+        RT=RT3/RGS
         TDP(NN)=RT
 !
-   20 CONTINUE
+      ENDDO loop_20
 !      PRINT 25,RVP1,RVP2,TDP(1),TDP(NT)
-!  25  FORMAT(/'0', 'IN SUBROUTINE DEWPOINT, THE DEWPT TABLE ',
-!    1             'HAS RVP1=', 1PE13.6, ', RVP2=', 1PE13.6,
-!    2             ', TDP(1)=', 1PE13.6, ', AND TDP(NT)=',
-!    3             1PE13.6, '.'/)
+!  25  FORMAT(/'0', 'IN SUBROUTINE DEWPOINT, THE DEWPT TABLE ',         &
+!    &             'HAS RVP1=', 1PE13.6, ', RVP2=', 1PE13.6,            &
+!    &             ', TDP(1)=', 1PE13.6, ', AND TDP(NT)=',              &
+!    &             1PE13.6, '.'/)
 !           CONSTANTS FOR USING THE TABLE
       A     = 1./RDVP
       B     = 1. - A*RVP1

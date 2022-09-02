@@ -16,6 +16,7 @@
 !> 2021-03-11 | Bo Cui         | improve local arrays memory
 !> 2021-08-31 | Lin Zhu        | added ssmis-f17 channels 15-18 grib2 output 
 !> 2021-09-02 | Bo Cui         | Decompose UPP in X direction          
+!> 2022-09-01 | Sam Trahan     | removed line number do loop
 !>
 !> @author Chuang @date 2007-01-17       
       SUBROUTINE CALRAD_WCLOUD
@@ -2753,10 +2754,10 @@ end function EFFR
       TMP=X+5.5D0
       TMP=(X+0.5D0)*LOG(TMP)-TMP
       SER=1.000000000190015D0
-      DO 11 J=1,6
+      loop_11: DO J=1,6
         Y=Y+1.D0
         SER=SER+COF(J)/Y
-11    CONTINUE
+      ENDDO loop_11
       GAMMLN=TMP+LOG(STP*SER/X)
       END FUNCTION GAMMLN
 

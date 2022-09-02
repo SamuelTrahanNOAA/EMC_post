@@ -18,6 +18,7 @@
 !> 2012-01-27 | Jun Wang | Initial
 !> 2015-03-10 | Lin Gan  | Replace XML file with flat file implementation
 !> 2019-10-30 | Bo Cui   | Removw "GOTO" Statement
+!> 2022-09-01 |Sam Trahan| removed unused "continue" line
 !>
 !> @author J. Wang NCEP/EMC @date 2012-01-27
       SUBROUTINE SET_OUTFLDS(kth,th,kpv,pv)
@@ -156,7 +157,7 @@
       if(me==0)write(0,*)'in readxml. nfld=',nfld,'nrecout=',nrecout
 !
 ! skip creating ipv files if kth=0 and no isobaric fields are requested in ctl file      
-!     if(kth == 0 .and. iget(013) <= 0) go to 999
+!     if(kth == 0 .and. iget(013) <= 0) return
 !     
 !     ECHO OUTPUT FIELDS/LEVELS TO 6.
 !
@@ -164,7 +165,7 @@
 !        WRITE(6,*)'BELOW ARE FIELD/LEVEL/SMOOTHING ',       &
 !             'SPECIFICATIONS.,NFLD=',NFLD,'MXLVL=',MXLVL,'nrecout=',nrecout
 !      ENDIF
-!      DO 50 IFLD = 1,NFLD
+!      loop_50: DO IFLD = 1,NFLD
 !        IF(ME==0)THEN
 !         i=IAVBLFLD(IFLD)
 !         write(0,*)'readxml,ifld=',ifld,'iget(',IDENT(ifld),')=',iget(ident(ifld)),'iavbl=',IAVBLFLD(iget(ident(ifld))),'postvar=',trim(pset%param(i)%pname),  &
@@ -173,12 +174,10 @@
 !           WRITE(0,*) pset%param(i)%level
 !         endif
 !        ENDIF
-! 50   CONTINUE
+!      ENDDO loop_50
 !     
 !     END OF ROUTINE.
 !     
- 999  CONTINUE
 
        if(me==0)print *,'end of read_postcntrl_xml'
-      RETURN
-      END
+      END SUBROUTINE SET_OUTFLDS

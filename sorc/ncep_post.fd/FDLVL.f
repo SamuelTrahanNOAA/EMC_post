@@ -39,6 +39,7 @@
 !> 2002-01-15 | Mike Baldwin | WRF version           
 !> 2011-12-14 | Sarah Lu     | Add GOCART aerosol AERFD
 !> 2021-10-15 | JESSE MENG   | 2D DECOMPOSITION
+!> 2022-09-01 | Sam Trahan   | removed line number do loops
 !>
 !> @author Russ Treadon W/NP2 @date 1992-12-22
       SUBROUTINE FDLVL(ITYPE,TFD,QFD,UFD,VFD,PFD,ICINGFD,AERFD)
@@ -152,7 +153,7 @@
 !        LOCATE VERTICAL INDICES OF T,Q,U,V, LEVEL JUST 
 !        ABOVE EACH FD LEVEL.
 !
-!        DO 22 IFD = 1, NFD
+!        loop_22: DO IFD = 1, NFD
               DONEH=.FALSE.
               DONEV=.FALSE.
               DO L = LM,1,-1
@@ -207,11 +208,11 @@
     
                 IF(DONEH .AND. DONEV) exit
               enddo           ! end of l loop
-! 22     CONTINUE   	
+!        ENDDO loop_22	
 !     
 !        COMPUTE T, Q, U, AND V AT FD LEVELS.
 !
-!         DO 40 IFD = 1,NFD
+!         loop_40: DO IFD = 1,NFD
  
               L = LHL(IFD)
               IF (L < LM) THEN
@@ -277,7 +278,7 @@
                 UFD(I,J,IFD)=UH(I,J,L)
                 VFD(I,J,IFD)=VH(I,J,L)
               ENDIF
-! 40      CONTINUE
+!         ENDDO loop_40
 !     
 !     COMPUTE FD LEVEL T, Q, U, AND V AT NEXT K.
 !
@@ -314,7 +315,7 @@
 !        LOCATE VERTICAL INDICES OF T,U,V, LEVEL JUST 
 !        ABOVE EACH FD LEVEL.
 !
-!             DO 222 IFD = 1, NFD
+!             loop_222: DO IFD = 1, NFD
               DONEH=.FALSE.
               DONEV=.FALSE.
               DO L = LLMH,1,-1
@@ -350,9 +351,9 @@
 !     
 !        COMPUTE T, Q, U, AND V AT FD LEVELS.
 !
-! 222     CONTINUE
+!         ENDDO loop_222
 !
-!             DO 240 IFD = 1,NFD
+!             loop_240: DO IFD = 1,NFD
                L = LHL(IFD)
                IF (L<LM) THEN
                  DZ   = ZMID(I,J,L)-ZMID(I,J,L+1)
@@ -416,7 +417,7 @@
                  UFD(I,J,IFD) = UH(I,J,L)
                  VFD(I,J,IFD) = VH(I,J,L)
               ENDIF
-! 240     CONTINUE
+!         ENDDO loop_240
 !     
 !     COMPUTE FD LEVEL T, U, AND V AT NEXT K.
 !
@@ -429,19 +430,18 @@
 !  safety check to avoid tiny QFD values
      !KRF: Need NCAR and NMM WRF cores in this check as well?
      IF(MODELNAME=='RAPR' .OR. MODELNAME=='NCAR' .OR. MODELNAME=='NMM') THEN   !
-       DO 420 IFD = 1,NFD
+       loop_420: DO IFD = 1,NFD
          DO J=JSTA,JEND
          DO I=ISTA,IEND
             if(QFD(I,J,IFD) < 1.0e-8) QFD(I,J,IFD)=0.0
          ENDDO
          ENDDO
-420    CONTINUE
+       ENDDO loop_420
      endif
 !
 !     END OF ROUTINE.
 !
-      RETURN
-      END
+      END SUBROUTINE FDLVL
 
 !> Computes FD level for u,v.
 !>
@@ -742,8 +742,7 @@
         ENDIF
       enddo          ! end of IFD loop
 
-      RETURN
-      END
+      END SUBROUTINE FDLVL_UV
 
 !> Computes FD level for mass variables.
 !>
@@ -1084,5 +1083,4 @@
 !
 !     END OF ROUTINE.
 !
-      RETURN
-      END
+      END SUBROUTINE FDLVL_MASS

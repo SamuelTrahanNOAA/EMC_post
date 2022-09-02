@@ -283,10 +283,10 @@
 !
 !!$omp  parallel do
 !!$omp& private(nn,i,j,ll,fact,qsat,rhl)
-!hc      DO 220 NN=1,NHOLD
+!hc      loop_220: DO NN=1,NHOLD
 !hc        I=IHOLD(NN)
 !hc         J=JHOLD(NN)
-!           DO 220 J=JSTA,JEND
+!           loop_220: DO J=JSTA,JEND
 
           ii = (ista+iend)/2
           jj = (jsta+jend)/2

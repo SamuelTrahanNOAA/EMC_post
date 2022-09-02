@@ -17,6 +17,7 @@
 !!   21-04-01  J MENG - computation on defined points only
 !!   21-07-26  W Meng - Restrict computation from undefined grids
 !!   21-10-14  J MENG - 2D DECOMPOSITION
+!!   22-09-01  Sam Trahan - removed line number do loops
 !!     
 !! USAGE:    CALL MDL2P
 !!   INPUT ARGUMENT LIST:
@@ -142,7 +143,7 @@
 !***  INTERPOLATION ABOVE GROUND NOW.
 !***
 !
-        DO 310 LP=1,LAGL
+        loop_310: DO LP=1,LAGL
           iget1 = -1 ; iget2 = -1 ; iget3 = -1 ; iget4 = -1
           if (iget(253) > 0) iget1 = LVLS(LP,IGET(253))
           if (iget(279) > 0) iget2 = LVLS(LP,IGET(279))
@@ -187,14 +188,14 @@
            ENDDO
          ENDDO
 !
-!mptest        IF(NHOLD==0)GO TO 310
+!mptest        IF(NHOLD==0) CYCLE loop_310
 !
 !!$omp  parallel do
 !!$omp& private(nn,i,j,ll,fact,qsat,rhl)
-!hc        DO 220 NN=1,NHOLD
+!hc        loop_220: DO NN=1,NHOLD
 !hc        I=IHOLD(NN)
 !hc        J=JHOLD(NN)
-!        DO 220 J=JSTA,JEND
+!        loop_220: DO J=JSTA,JEND
 
          DO J=JSTA,JEND
            DO I=ISTA,IEND
@@ -348,7 +349,7 @@
 !     
 !***  END OF MAIN VERTICAL LOOP
 !     
-  310   CONTINUE
+        ENDDO loop_310
 !***  ENDIF FOR IF TEST SEEING IF WE WANT ANY OTHER VARIABLES
 !
       ENDIF
@@ -945,7 +946,7 @@
         iget2 = -1
         if (iget(253) > 0 ) iget2 = IAVBLFLD(IGET(253))
         iget2 = IGET(253)
-        DO 320 LP=1,LAGL2
+        loop_320: DO LP=1,LAGL2
           iget1 = -1
           if (iget(259) > 0 ) iget1 = LVLS(LP,IGET(259))
           IF(iget1 > 0 .or. iget2 > 0) THEN 
@@ -984,14 +985,14 @@
             ENDDO
           ENDDO
 !
-!mptest        IF(NHOLD==0)GO TO 310
+!mptest        IF(NHOLD==0)CYCLE loop_310
 !
 !!$omp  parallel do
 !!$omp& private(nn,i,j,ll,fact,qsat,rhl)
-!hc        DO 220 NN=1,NHOLD
+!hc        loop_220: DO NN=1,NHOLD
 !hc        I=IHOLD(NN)
 !hc        J=JHOLD(NN)
-!        DO 220 J=JSTA,JEND
+!        loop_220: DO J=JSTA,JEND
          DO J=JSTA,JEND
           IF(gridtype=='A')THEN
            IHW(J)=-1
@@ -1024,8 +1025,8 @@
 	   call exch(VH(ISTA_2L:IEND_2U,JSTA_2L:JEND_2U,LL))
 	  END DO
 	 END IF   
-         DO 230 J=JSTART,JSTOP
-         DO 230 I=ISTART,ISTOP
+         loop_230_j: DO J=JSTART,JSTOP
+         loop_230_i: DO I=ISTART,ISTOP
           LL=NL1X(I,J)
 !---------------------------------------------------------------------
 !***  VERTICAL INTERPOLATION OF GEOPOTENTIAL, TEMPERATURE, SPECIFIC
@@ -1115,7 +1116,8 @@
      &	       VH(IE,JS,NINT(LMV(IE,JS)))+VH(IW,JS,NINT(LMV(IW,JS))))/4.0
            END IF
           END IF
-  230    CONTINUE
+         ENDDO loop_230_i
+         ENDDO loop_230_j
 !
 !     
 !---------------------------------------------------------------------
@@ -1158,7 +1160,7 @@
 !     
 !***  END OF MAIN VERTICAL LOOP
 !     
-  320   CONTINUE
+        ENDDO loop_320
 !***  ENDIF FOR IF TEST SEEING IF WE WANT ANY OTHER VARIABLES
 !
       ENDIF
@@ -1171,7 +1173,7 @@
 !***  INTERPOLATION ABOVE GROUND NOW.
 !***
 !
-        DO 330 LP=1,LAGL2
+        loop_330: DO LP=1,LAGL2
           iget1 = -1 ; iget2 = -1 ; iget3 = -1
           if (iget(411) > 0) iget1 = LVLS(LP,IGET(411))
           if (iget(412) > 0) iget2 = LVLS(LP,IGET(412))
@@ -1217,16 +1219,16 @@
               ENDDO
             ENDDO
 !
-!mptest        IF(NHOLD==0)GO TO 310
+!mptest        IF(NHOLD==0)CYCLE loop_310
 !
 !!$omp  parallel do
 !!$omp& private(nn,i,j,ll,fact,qsat,rhl)
-!chc        DO 220 NN=1,NHOLD
+!chc        loop_220: DO NN=1,NHOLD
 !chc        I=IHOLD(NN)
 !chc        J=JHOLD(NN)
-!        DO 220 J=JSTA,JEND
-            DO 240 J=JSTA_2L,JEND_2U
-              DO 240 I=ISTA_2L,IEND_2U
+!        loop_220: DO J=JSTA,JEND
+            loop_240_j: DO J=JSTA_2L,JEND_2U
+              loop_240_i: DO I=ISTA_2L,IEND_2U
                 LL = NL1X(I,J)
 !---------------------------------------------------------------------
 !***  VERTICAL INTERPOLATION OF GEOPOTENTIAL, TEMPERATURE, SPECIFIC
@@ -1282,7 +1284,8 @@
                 UAGL(I,J) = UH(I,J,NINT(LMV(I,J)))
                 VAGL(I,J) = VH(I,J,NINT(LMV(I,J)))
               END IF
-  240 CONTINUE
+      ENDDO loop_240_i
+      ENDDO loop_240_j
 !
 !
 !---------------------------------------------------------------------
@@ -1350,7 +1353,7 @@
 !
 !***  END OF MAIN VERTICAL LOOP
 !
-  330   CONTINUE
+        ENDDO loop_330
 !***  ENDIF FOR IF TEST SEEING IF WE WANT ANY OTHER VARIABLES
 !
       ENDIF
@@ -1358,6 +1361,5 @@
 !
 !     END OF ROUTINE.
 !
-      RETURN
-      END
+      END SUBROUTINE MDL2AGL
 

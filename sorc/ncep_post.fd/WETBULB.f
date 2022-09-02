@@ -9,6 +9,7 @@
 !     02-01-15  MIKE BALDWIN - WRF VERSION
 !     21-07-26  Wen Meng  - Restrict compuation from undefined grids
 !     21-09-13  Jesse Meng- 2D DECOMPOSITION
+!     22-09-01  Sam Trahan - removed line number do loops
 !
 !-----------------------------------------------------------------------
 !     ROUTINE TO COMPUTE WET BULB TEMPERATURES USING THE LOOK UP TABLE
@@ -62,9 +63,9 @@
 !!$omp&         presk,qbtk,qqk,sqk,sqs00k,sqs10k,tbtk,thesp,tpspk,
 !!$omp&         tqk,tthbtk,tthk)
 !-----------------------------------------------------------------------
-      DO 300 L=1,LM
-      DO 125 J=JSTA,JEND
-      DO 125 I=ISTA,IEND
+      loop_300: DO L=1,LM
+      loop_125_j: DO J=JSTA,JEND
+      loop_125_i: DO I=ISTA,IEND
         IF (HTM(I,J,L)<1.0) THEN
           THESP(I,J)=273.15
           cycle    
@@ -128,13 +129,14 @@
         THESP(I,J)=spval
         ENDIF !end t(i,j,l)<spval
 !      ENDIF
-  125 CONTINUE
+      ENDDO loop_125_i
+      ENDDO loop_125_j
 !--------------SCALING PRESSURE & TT TABLE INDEX------------------------
       KNUML=0
       KNUMH=0
 !
-      DO 280 J=JSTA,JEND
-      DO 280 I=ISTA,IEND
+      loop_280_j: DO J=JSTA,JEND
+      loop_280_i: DO I=ISTA,IEND
       KLRES(I,J)=0
       KHRES(I,J)=0
 !
@@ -150,7 +152,8 @@
           KHRES(I,J)=1
         ENDIF
 !      ENDIF
- 280  CONTINUE
+      ENDDO loop_280_i
+      ENDDO loop_280_j
 !***
 !***  COMPUTE PARCEL TEMPERATURE ALONG MOIST ADIABAT FOR PRESSURE<PL
 !**
@@ -169,6 +172,5 @@
       ENDIF
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
-  300 CONTINUE
-      RETURN
-      END
+      ENDDO loop_300
+      END SUBROUTINE WETBULB

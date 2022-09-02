@@ -89,6 +89,7 @@
 !           Argonne, IL 60439                                    
  
 !   10-30-19  Bo CUI - REMOVE "GOTO" STATEMENT
+!   22-09-01  Sam Trahan - removed line number do loop
 !                                                               
 !----------------------------------------------------------------------        
       implicit none
@@ -206,10 +207,10 @@
 !----------------------------------------------------------------------    
             XNUM = ZERO
             XDEN = ONE
-            DO 260 I = 1, 8
+            loop_260: DO I = 1, 8
                XNUM = (XNUM + P(I)) * Z
                XDEN = XDEN * Z + Q(I)
-  260       CONTINUE
+            ENDDO loop_260
             RES = XNUM / XDEN + ONE
             IF (Y1 < Y) THEN
 !----------------------------------------------------------------------   
@@ -220,10 +221,10 @@
 !----------------------------------------------------------------------       
 !  Adjust result for case  2.0 < argument < 12.0                       
 !----------------------------------------------------------------------     
-                  DO 290 I = 1, N
+                  loop_290: DO I = 1, N
                      RES = RES * Y
                      Y = Y + ONE
-  290             CONTINUE
+                  ENDDO loop_290
             END IF
          ELSE
 !----------------------------------------------------------------------    
@@ -232,9 +233,9 @@
             IF (Y <= XBIG) THEN
                   YSQ = Y * Y
                   SUM = C(7)
-                  DO 350 I = 1, 6
+                  loop_350: DO I = 1, 6
                      SUM = SUM / YSQ + C(I)
-  350             CONTINUE
+                  ENDDO loop_350
                   SUM = SUM/Y - Y + SQRTPI
                   SUM = SUM + (Y-HALF)*LOG(Y)
                   RES = EXP(SUM)
@@ -252,5 +253,5 @@
       fGAMMA = RES                                                       
       RETURN
 ! ---------- Last line of fGAMMA ----------                              
-      END
+      END FUNCTION fGAMMA
 

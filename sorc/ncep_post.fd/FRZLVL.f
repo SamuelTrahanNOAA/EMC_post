@@ -36,6 +36,7 @@
 !> 2019-10-30 | Bo Cui       | Remove "GOTO" statement
 !> 2020-11-10 | Jesse Meng   | Use UPP_PHYSICS module
 !> 2021-10-15 |JESSE MENG    | 2D DECOMPOSITION
+!> 2022-09-01 | Sam Trahan   | removed line number do loops
 !>
 !> @author Russ Treadon W/NP2 @date 1992-12-22
       SUBROUTINE FRZLVL(ZFRZ,RHFRZ,PFRZL)
@@ -73,8 +74,8 @@
 !    &         qsat,qsfc,qsfrz,rhsfc,rhz,tsfc,                        &
 !    &         zl,zu)
 
-       DO 20 J=JSTA,JEND
-       DO 20 I=ISTA,IEND
+       loop_20_j: DO J=JSTA,JEND
+       loop_20_i: DO I=ISTA,IEND
          HTSFC    = FIS(I,J)*GI
          LLMH     = NINT(LMH(I,J))
          RHFRZ(I,J) = D00
@@ -130,7 +131,7 @@
 !     
 !        OTHERWISE, LOCATE THE FREEZING LEVEL ALOFT.
 !
-         DO 10 L = LLMH,1,-1
+         loop_10: DO L = LLMH,1,-1
             IF (T(I,J,L)<=TFRZ) THEN
                IF (L<LLMH) THEN
                   DELZ = ZMID(I,J,L)-ZMID(I,J,L+1)
@@ -217,10 +218,10 @@
                ZFRZ(I,J)  = AMAX1(0.0,ZFRZ(I,J))
                EXIT             
             ENDIF
- 10      CONTINUE
-20   CONTINUE
+         ENDDO loop_10
+     ENDDO loop_20_i
+     ENDDO loop_20_j
 !     
 !     END OF ROUTINE.
 !     
-      RETURN
-      END
+      END SUBROUTINE FRZLVL

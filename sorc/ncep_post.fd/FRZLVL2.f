@@ -41,6 +41,7 @@
 !> 2020-11-10 | Jesse Meng   | Use UPP_PHYSICS module
 !> 2021-10-15 | JESSE MENG   | 2D DECOMPOSITION
 !> 2021-07-28 | W. Meng      | Restrict compuatation from undefined grids
+!> 2022-09-01 | Sam Trahan   | removed line number do loops
 !>
 !> @author Russ Treadon W/NP2 @date 1992-12-22
       SUBROUTINE FRZLVL2(ISOTHERM,ZFRZ,RHFRZ,PFRZL)
@@ -76,8 +77,8 @@
 !     LOOP OVER HORIZONTAL GRID.
 !     
 
-      DO 20 J=JSTA,JEND
-      DO 20 I=ISTA,IEND
+      loop_20_j: DO J=JSTA,JEND
+      loop_20_i: DO I=ISTA,IEND
          IF(FIS(I,J)<spval)THEN
          HTSFC    = FIS(I,J)*GI
          LLMH     = NINT(LMH(I,J))
@@ -226,9 +227,9 @@
                RHFRZ(I,J) = spval
                ZFRZ(I,J)  = spval
          ENDIF
- 20   CONTINUE
+      ENDDO loop_20_i
+      ENDDO loop_20_j
 !     
 !     END OF ROUTINE.
 !     
-      RETURN
-      END
+      END SUBROUTINE FRZLVL2

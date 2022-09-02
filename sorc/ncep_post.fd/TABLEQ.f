@@ -7,6 +7,7 @@
 !     *                                                                *
 !     ******************************************************************
 !
+!    22-09-01  Sam Trahan - removed line number do loops
 !
       implicit none
 
@@ -40,29 +41,29 @@
       TH=THL-DTH
 !--------------COARSE LOOK-UP TABLE FOR T(P) FROM CONSTANT THE----------
       P=PL-DP
-              DO 550 KP=1,KPM
+              loop_550: DO KP=1,KPM
           P=P+DP
           TH=THL-DTH
-          DO 560 KTH=1,KTHM
+          loop_560: DO KTH=1,KTHM
       TH=TH+DTH
       APE=(100000./P)**(R/CP)
       QS=PQ0/P*EXP(A2*(TH-A3*APE)/(TH-A4*APE))
       TOLD(KTH)=TH/APE
       THEOLD(KTH)=TH*EXP(ELIWV*QS/(CP*TOLD(KTH)))
- 560  CONTINUE
+      ENDDO loop_560
 !
       THE0K=THEOLD(1)
       STHEK=THEOLD(KTHM)-THEOLD(1)
       THEOLD(1   )=0.
       THEOLD(KTHM)=1.
 !
-          DO 570 KTH=2,KTHM1
+          loop_570: DO KTH=2,KTHM1
       THEOLD(KTH)=(THEOLD(KTH)-THE0K)/STHEK
 !
       IF((THEOLD(KTH)-THEOLD(KTH-1))<EPS)     &
           THEOLD(KTH)=THEOLD(KTH-1)  +  EPS
 !
- 570  CONTINUE
+      ENDDO loop_570
 !
       THE0(KP)=THE0K
       STHE(KP)=STHEK
@@ -72,20 +73,20 @@
       DTHE=1./REAL(KTHM-1)
       RDTHE=1./DTHE
 !
-          DO 580 KTH=2,KTHM1
+          loop_580: DO KTH=2,KTHM1
       THENEW(KTH)=THENEW(KTH-1)+DTHE
- 580  CONTINUE
+      ENDDO loop_580
 !
       Y2T(1   )=0.
       Y2T(KTHM)=0.
 !
       CALL SPLINE(JTB,KTHM,THEOLD,TOLD,Y2T,KTHM,THENEW,TNEW,APT,AQT)
 !
-          DO 590 KTH=1,KTHM
+          loop_590: DO KTH=1,KTHM
       TTBLQ(KTH,KP)=TNEW(KTH)
- 590  CONTINUE
+      ENDDO loop_590
 !-----------------------------------------------------------------------
- 550  CONTINUE
+      ENDDO loop_550
 !
       RETURN
       END

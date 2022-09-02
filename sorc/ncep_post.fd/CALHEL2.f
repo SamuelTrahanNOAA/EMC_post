@@ -40,6 +40,7 @@
 !> 2005-07-07 | Binbin Zhou     | Add RSM for A grid  
 !> 2019-09-03 | J Meng          | Modified to compute effective helicity and critical angle
 !> 2021-09-02 | Bo Cui          | Decompose UPP in X direction          
+!> 2022-09-01 | Sam Trahan      | removed line number do loop
 !>   
 !> @author Michael Baldwin W/NP2 @date 1994-08-22
       SUBROUTINE CALHEL2(LLOW,LUPP,DEPTH,UST,VST,HELI,CANGLE)
@@ -264,7 +265,7 @@
 ! CASE WHERE THERE IS NO LEVEL WITH HEIGHT BETWEEN 5500 AND 6000
 !
       DO J=JSTART,JSTOP
-        DO I=ISTART,ISTOP
+        i_loop: DO I=ISTART,ISTOP
           IF (COUNT5(I,J) == 0) THEN
             DO L=LM,1,-1
               IE=I+IVE(J)
@@ -282,12 +283,11 @@
                  UST5(I,J) = UST5(I,J) + UH(I,J,L)
                  VST5(I,J) = VST5(I,J) + VH(I,J,L)
                  COUNT5(I,J) = 1
-                 GOTO 30
+                 CYCLE i_loop
               ENDIF
             ENDDO
           ENDIF
-30    CONTINUE
-        ENDDO
+        ENDDO i_loop
       ENDDO
 
 !

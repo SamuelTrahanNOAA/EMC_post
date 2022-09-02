@@ -44,6 +44,7 @@
 !!   20-11-10  J MENG - USE UPP_PHYSICS MODULE
 !!   21-04-01  J MENG - COMPUTATION ON DEFINED POINTS ONLY
 !!   21-07-07  J MENG - 2D DECOMPOSITION
+!!   22-09-01  Sam Trahan - removed line number do loop
 !!
 !! USAGE:    CALL MDLFLD
 !!   INPUT ARGUMENT LIST:
@@ -916,7 +917,7 @@ refl_adj:           IF(REF_10CM(I,J,L)<=DBZmin) THEN
            (IGET(909)>0).OR.(IGET(737)>0).OR.      &
            (IGET(994)>0).OR.(IGET(995)>0) ) THEN
 
-      DO 190 L=1,LM
+      loop_190: DO L=1,LM
 
 !           PRESSURE ON MDL SURFACES.
             IF (IGET(001)>0) THEN
@@ -2841,7 +2842,7 @@ refl_adj:           IF(REF_10CM(I,J,L)<=DBZmin) THEN
 
 ! CRA
 !
- 190     CONTINUE
+          ENDDO loop_190
 !
 !     END OF MDL SURFACE OUTPUT BLOCK.
 !
@@ -3563,7 +3564,7 @@ refl_adj:           IF(REF_10CM(I,J,L)<=DBZmin) THEN
             IF ( (IGET(111)>0) ) CALL CALRCH(EL,RICHNO)
 !
 !           LOOP OVER MDL LAYERS.
-            DO 200 L = 1,LM
+            loop_200: DO L = 1,LM
 !     
 !              POST MIXING LENGTH.
 !
@@ -3623,7 +3624,7 @@ refl_adj:           IF(REF_10CM(I,J,L)<=DBZmin) THEN
             ENDIF
            END IF
 
- 200        CONTINUE
+            ENDDO loop_200
 !
 !
          ENDIF

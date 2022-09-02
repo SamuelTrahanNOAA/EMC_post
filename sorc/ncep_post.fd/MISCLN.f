@@ -2131,7 +2131,7 @@
 !            ENDDO
 !            ENDDO
 !
-!            DO 50 LBND = 1,NBND
+!            loop_50: DO LBND = 1,NBND
 !               CALL OTLFT(PBND(1,1,LBND),TBND(1,1,LBND),      &
 !                    QBND(1,1,LBND),EGRID2)
 !               DO J=JSTA,JEND
@@ -2139,7 +2139,7 @@
 !                 EGRID1(I,J)=AMIN1(EGRID1(I,J),EGRID2(I,J))
 !               ENDDO
 !               ENDDO
-! 50         CONTINUE
+!            ENDDO loop_50
 !$omp parallel do private(i,j)
             DO J=JSTA,JEND
               DO I=ISTA,IEND

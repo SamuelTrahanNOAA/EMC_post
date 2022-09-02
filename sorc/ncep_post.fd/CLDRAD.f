@@ -2803,15 +2803,14 @@ snow_check:   IF (QQS(I,J,L)>=QCLDmin) THEN
 !!!               prsctt=pf(i,j,k-1)+fac*(pf(i,j,k)-pf(i,j,k-1))
 !!!               prsctt=min(prs(i,j,mkzh),max(prs(i,j,1),prsctt))
 !!              endif
-!!!              do 30 k=2,mkzh
+!!!              loop_30: do k=2,mkzh
 !!!              if (prsctt>=prs(i,j,k-1).and.prsctt<=prs(i,j,k)) then
 !!!               fac=(prsctt-prs(i,j,k-1))/(prs(i,j,k)-prs(i,j,k-1))
 !!!               ctt(i,j)=tmk(i,j,k-1)+
 !!!     &            fac*(tmk(i,j,k)-tmk(i,j,k-1))-celkel
-!!!               goto 40
+!!!               exit loop_30
 !!!              endif
-!!!   30       continue
-!!!   40       continue 
+!!!            enddo loop_30
 !!             END DO
 !!	     END DO 
            if(grib=="grib2" )then

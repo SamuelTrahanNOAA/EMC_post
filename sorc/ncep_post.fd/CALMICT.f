@@ -31,6 +31,7 @@
 !> 2004-11-17 | H Chuang     | WRF VERSION     
 !> 2014-03-11 | Brad Ferrier | Created new & old versions of this subroutine to process new & old versions of the microphysics
 !> 2021-09-02 | Bo Cui       | Decompose UPP in X direction          
+!> 2022-09-01 | Sam Trahan   | removed line number do loops and gotos
 !>
 !> @author Yi Jin W/NP2 @date 2001-08-14
       SUBROUTINE CALMICT_new(P1D,T1D,Q1D,C1D,FI1D,FR1D,FS1D,CUREFL,     &
@@ -82,21 +83,18 @@
           DBZC1(I,J)=DBZmin
         ENDDO
       ENDDO
-      DO J=JSTA,JEND
-        DO I=ISTA,IEND
+      big_j_loop: DO J=JSTA,JEND
+        big_i_loop: DO I=ISTA,IEND
           Ztot=0.             !--- Total radar reflectivity
           Zrain=0.            !--- Radar reflectivity from rain
           Zice=0.             !--- Radar reflectivity from ice
           Zsmice=0.           !--- Radar reflectivity from small ice
           Zconv=CUREFL(I,J)   !--- Radar reflectivity from convection
-          IF (C1D(I,J) <= EPSQ) THEN
+          skip_calculations: IF (.not. (C1D(I,J) <= EPSQ) ) THEN
 !
 !--- Skip rest of calculatiions if no condensate is present
 !
-            GO TO 10
-          ELSE
             WC=C1D(I,J)
-          ENDIF
 !
 !--- Code below is from GSMDRIVE for determining:
 !    QI1 - total ice (cloud ice & snow) mixing ratio
@@ -281,21 +279,21 @@ dbz_mix:  IF (RQR>RQmix .AND. RQLICE>RQmix) THEN
               ENDIF
             ENDIF
           ENDIF  dbz_mix
+        ENDIF skip_calculations
 !
 !---  Calculate total (convective + grid-scale) radar reflectivity
 !
-10        Zice=Zice+Zsmice
+          Zice=Zice+Zsmice
           Ztot=Zrain+Zice+Zconv
           IF (Ztot > Zmin)  DBZ1(I,J)= 10.*ALOG10(Ztot)
           IF (Zrain > Zmin) DBZR1(I,J)=10.*ALOG10(Zrain)
           IF (Zice > Zmin)  DBZI1(I,J)=10.*ALOG10(Zice)
 !          IF (Zconv > Zmin) DBZC1(I,J)=10.*ALOG10(Zsmice)
           IF (Zconv > Zmin) DBZC1(I,J)=10.*ALOG10(Zconv)
-        ENDDO
-      ENDDO
+        ENDDO big_i_loop
+      ENDDO big_j_loop
 !
-      RETURN
-      END
+      END SUBROUTINE CALMICT_new
 !
 !-- For the old version of the microphysics:
 !
@@ -332,6 +330,7 @@ dbz_mix:  IF (RQR>RQmix .AND. RQLICE>RQmix) THEN
 !> 2004-11-10 | Brad Ferrier | Removed cloud fraction algorithm
 !> 2004-11-17 | H Chuang     | WRF VERSION     
 !> 2014-03-11 | Brad Ferrier | Created new & old versions of this subroutine to process new & old versions of the microphysics
+!> 2022-09-01 | Sam Trahan   | removed line number do loops and gotos
 !>
 !> @author Yi Jin W/NP2 @date 2001-08-14
       use params_mod, only: dbzmin, epsq, tfrz, eps, rd, d608, oneps, nlimin
@@ -377,19 +376,14 @@ dbz_mix:  IF (RQR>RQmix .AND. RQLICE>RQmix) THEN
           DBZC1(I,J)=DBZmin
         ENDDO
       ENDDO
-      DO J=JSTA,JEND
-        DO I=ISTA,IEND
+      big_j_loop: DO J=JSTA,JEND
+        big_i_loop: DO I=ISTA,IEND
           Zrain=0.            !--- Radar reflectivity from rain
           Zice=0.             !--- Radar reflectivity from ice
           Zconv=CUREFL(I,J)   !--- Radar reflectivity from convection
-          IF (C1D(I,J) <= EPSQ) THEN
-!
-!--- Skip rest of calculatiions if no condensate is present
-!
-            GO TO 10
-          ELSE
-            WC=C1D(I,J)
-          ENDIF
+          skip_calculations: IF (.not. (C1D(I,J) <= EPSQ) ) THEN
+
+          WC=C1D(I,J)
 !
 !--- Code below is from GSMDRIVE for determining:
 !    QI1 - total ice (cloud ice & snow) mixing ratio
@@ -534,13 +528,13 @@ dbz_mix:  IF (RQR>RQmix .AND. RQLICE>RQmix) THEN
           ENDIF                 ! End IF (QI1(I,J) > 0.) THEN
 !
 !---  Calculate total (convective + grid-scale) radar reflectivity
-10        Ztot=Zrain+Zice+Zconv
+          ENDIF skip_calculations
+          Ztot=Zrain+Zice+Zconv
           IF (Ztot > Zmin)  DBZ1(I,J)= 10.*ALOG10(Ztot)
           IF (Zrain > Zmin) DBZR1(I,J)=10.*ALOG10(Zrain)
           IF (Zice > Zmin)  DBZI1(I,J)=10.*ALOG10(Zice)
           IF (Zconv > Zmin) DBZC1(I,J)=10.*ALOG10(Zconv)
-        ENDDO
-      ENDDO
+        ENDDO big_i_loop
+      ENDDO big_j_loop
 !
-      RETURN
-      END
+      END SUBROUTINE CALMICT_old

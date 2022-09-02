@@ -134,7 +134,7 @@
              if(MODELNAME == 'RAPR') then
                ZSFC = ZINT(I,J,LM+1)
                L = LPBL(I,J)
-! in RUC do 342 k=2,k1-1, where k1 - first level above PBLH
+! in RUC loop_342: do k=2,k1-1, where k1 - first level above PBLH
                GUST(I,J) = SFCWIND
                do K=LM-1,L-1,-1
 

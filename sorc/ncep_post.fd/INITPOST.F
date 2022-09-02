@@ -19,6 +19,7 @@
 !> 2002-06-19 | Mike Baldwin | WRF Version
 !> 2002-08-15 | H CHuang     | Unit correction and generalize projection options
 !> 2021-03-11 | Bo Cui       | Change local arrays to dimension (im,jsta:jend)
+!> 2022-09-01 | Sam Trahan   | removed line number do loop
 !>
 !> @author Russ Treadon W/NP2 @date 1993-11-10
       SUBROUTINE INITPOST
@@ -2800,16 +2801,13 @@ endif  ! 1==2
           if (thv(i,j,lm-1) < (thv(i,j,lm) + delta_theta4gust)) then
             ZSF=ZINT(I,J,NINT(LMH(I,J))+1)
 !!   Calculate k1 level as first above PBL top
-            do 34 k=3,LM
+            loop_34: do k=3,LM
               k1 = k
 !! - give theta-v at the sfc a 0.5K boost in
 !!         the PBL height definition
               if (thv(i,j,lm-k+1)>(thv(i,j,lm) + delta_theta4gust))  &
-!                     go to 341
                       exit     
- 34         continue
-            continue
- !341        continue
+            enddo loop_34
               zpbltop = zmid(i,j,lm-k1+1) +                             &
                    ((thv(i,j,lm)+delta_theta4gust)-thv(i,j,lm-k1+1))    &
                  * (zmid(i,j,lm-k1+2)-zmid(i,j,lm-k1+1))                &

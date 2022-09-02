@@ -21,6 +21,7 @@
 !!   21-03-11  B Cui - change local arrays to dimension (im,jsta:jend)
 !!   21-07-26  W Meng - Restrict compuatation from undefined grids
 !!   21-10-14  J MENG - 2D DECOMPOSITION
+!!   22-09-01  Sam Trahan - removed line number do loops
 !!  
 !! USAGE:    CALL MDL2P
 !!   INPUT ARGUMENT LIST:
@@ -132,7 +133,7 @@
 !***
 !
 
-        DO 310 LP=1,LSIG
+        loop_310: DO LP=1,LSIG
           NHOLD=0
 !
           DO J=JSTA_2L,JEND_2U
@@ -167,17 +168,17 @@
             ENDDO
           ENDDO
 !
-!mptest        IF(NHOLD==0)GO TO 310
+!mptest        IF(NHOLD==0) CYCLE loop_310
 !
 !!$omp  parallel do
 !!$omp& private(nn,i,j,ll,fact,qsat,rhl)
-!hc        DO 220 NN=1,NHOLD
+!hc        loop_220: DO NN=1,NHOLD
 !hc        I=IHOLD(NN)
 !hc        J=JHOLD(NN)
-!         DO 220 J=JSTA,JEND
-!         DO 220 J=JSTA_2L,JEND_2U
-          DO 220 J=JSTA,JEND           ! Moorthi on Nov 26, 2014
-            DO 220 I=ISTA,IEND
+!         loop_220_j: DO J=JSTA,JEND
+!         loop_220_j: DO J=JSTA_2L,JEND_2U
+          loop_220_j: DO J=JSTA,JEND           ! Moorthi on Nov 26, 2014
+            loop_220_i: DO I=ISTA,IEND
               LL=NL1X(I,J)
 !---------------------------------------------------------------------
 !***  VERTICAL INTERPOLATION OF GEOPOTENTIAL, TEMPERATURE, SPECIFIC
@@ -252,7 +253,8 @@
 !
                 TSL(I,J) = TBLO
               END IF
-  220       CONTINUE
+            ENDDO loop_220_i
+            ENDDO loop_220_j
 
 !---------------------------------------------------------------------
 !        *** PART II ***
@@ -281,7 +283,7 @@
 !     
 !***  END OF MAIN VERTICAL LOOP
 !     
-  310   CONTINUE
+      ENDDO loop_310
 !***  ENDIF FOR IF TEST SEEING IF WE WANT ANY OTHER VARIABLES
 !
       ENDIF

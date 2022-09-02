@@ -40,6 +40,7 @@
 !> 2019-10-30 | Bo Cui       | Remove "GOTO" statement
 !> 2020-11-10 | Jesse Meng   | Use UPP_PHYSICS Module
 !> 2021-10-14 | JESSE MENG   | 2D DECOMPOSITION
+!> 2022-09-01 | Sam Trahan   | removed line number do loop
 !>
 !> @author Russ Treadon W/NP2 @date 1992-12-22
       SUBROUTINE LFMFLD_GFS(RH4410,RH7294,RH4472,RH3310)
@@ -78,8 +79,8 @@
 !
 !     LOOP OVER HORIZONTAL GRID.
 !     
-      DO 30 J=JSTA,JEND
-      DO 30 I=ISTA,IEND
+      loop_30_j: DO J=JSTA,JEND
+      loop_30_i: DO I=ISTA,IEND
 !     
 !        ZERO VARIABLES.
          RH4410(I,J) = D00
@@ -107,7 +108,7 @@
 !     
 !        ACCULMULATE RELATIVE HUMIDITIES AND PRECIPITABLE WATER.
 !
-         DO 10 L = LLMH,1,-1
+         loop_10: DO L = LLMH,1,-1
 !     
 !           GET P, Z, T, AND Q AT MIDPOINT OF ETA LAYER.
             
@@ -157,7 +158,7 @@
                QS7294    = QS7294+ QS*DP2
 !            ENDIF
 !
- 10      CONTINUE
+         ENDDO loop_10
 !     
 !        NORMALIZE TO GET MEAN RELATIVE HUMIDITIES.  AT
 !        ONE TIME WE DIVIDED PRECIPITABLE WATER BY DENSITY
@@ -185,9 +186,9 @@
          ELSE
             RH7294(I,J) = SPVAL
          ENDIF
- 30   CONTINUE
+      ENDDO loop_30_i
+      ENDDO loop_30_j
 !     
 !     END OF ROUTINE.
 !     
-      RETURN
-      END
+      END SUBROUTINE LFMFLD_GFS

@@ -26,6 +26,7 @@
 !> 2019-10-30 | Bo Cui       | Remove "GOTO" Statement
 !> 2021-07-28 | W Meng       | Restriction compuatation from undefined grids
 !> 2021-09-02 | Bo Cui       | Decompose UPP in X direction          
+!> 2022-09-01 | Sam Trahan   | removed line number do loop
 !>
 !> @author Russ Treadon W/NP2 @date 1993-03-15
       SUBROUTINE CALLCL(P1D,T1D,Q1D,PLCL,ZLCL)
@@ -70,8 +71,8 @@
 !
 ! Bo Cui 10/30/2019, remove "GOTO" statement
 
-      DO 30 J=JSTA_M,JEND_M
-      DO 30 I=ISTA_M,IEND_M
+      loop_30_j: DO J=JSTA_M,JEND_M
+      loop_30_i: DO I=ISTA_M,IEND_M
       IF(P1D(I,J)<spval.and.Q1D(I,J)<spval)THEN
       EVP       = P1D(I,J)*Q1D(I,J)/(EPS+ONEPS*Q1D(I,J))
       RMX       = EPS*EVP/(P1D(I,J)-EVP)
@@ -83,7 +84,7 @@
       LLMH      = NINT(LMH(I,J))
       ZSFC      = FIS(I,J)*GI
 !
-      DO 20 L=LLMH,1,-1
+      loop_20: DO L=LLMH,1,-1
       IF(ALPINT(I,J,L) < ALPLCL)THEN
         DLPLCL    = ALPLCL        - ALPINT(I,J,L+1)
         DALP      = ALPINT(I,J,L) - ALPINT(I,J,L+1)
@@ -91,9 +92,10 @@
         ZLCL(I,J) = max(D00, ZINT(I,J,L+1) + DZ*DLPLCL/DALP - ZSFC)
         EXIT
       ENDIF
- 20   CONTINUE
+      ENDDO loop_20
       ENDIF
- 30   CONTINUE
+      ENDDO loop_30_i
+      ENDDO loop_30_j
 !     
 !     END OF ROUTINE.
 !     

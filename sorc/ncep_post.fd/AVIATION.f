@@ -60,6 +60,7 @@
 !> Program History      
 !> - 19-10-30  Bo CUI - REMOVE "GOTO" STATEMENT
 !> - 21-04-01  Jesse Meng - computation on defined points only
+!> - 22-09-01  Sam Trahan - removed line number do loop
 !>     
 !> @author Binbin Zhou NCEP/EMC  @date 2005-08-16       
       SUBROUTINE CALLLWS(U,V,H,LLWS)
@@ -83,7 +84,7 @@
 !
 !
 
-      DO 100 J=JSTA,JEND
+      loop_100: DO J=JSTA,JEND
         DO I=ISTA,IEND
  
           Z1 = 10.0 + FIS(I,J)*GI                              !Height of 10m levels geographic height (from sea level)
@@ -127,10 +128,9 @@
                     609.6 * 1.943*609.6                         !unit: knot/2000ft
         ENDDO
  
-100   CONTINUE     
+      ENDDO loop_100
 
-      RETURN
-      END
+      END SUBROUTINE CALLLWS
 
 !> Computes In-Flight Icing.
 !>     
@@ -245,6 +245,7 @@
 !>
 !> PROGRAM HISTORY LOG:
 !> - 05-09-19  H CHUANG - MODIFIED TO COMPUTE GRADIENTS FOR BOTH A AND E GRIDS
+!> - 22-09-01  Sam Trahan - removed line number do loop
 !>
 !> According to Ellrod, the CAT is classied into 3 levels (index):
 !> - Light:  CAT = 1     
@@ -323,7 +324,7 @@
       call exch(H)
       call exch(H_OLD)
 
-      DO 100 J=JSTART,JSTOP
+      loop_100: DO J=JSTART,JSTOP
         DO I=ISTART,ISTOP
 !
           IF(GRIDTYPE=='B')THEN
@@ -476,10 +477,9 @@
          ENDIF
         ENDDO
  
-100   CONTINUE     
+      ENDDO loop_100
 
-      RETURN
-      END
+      END SUBROUTINE CALCAT
 
 !> Computes ceiling.
 !>     
