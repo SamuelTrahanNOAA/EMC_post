@@ -2199,7 +2199,6 @@
          !  LVLSXML(1,IGET(567)),'field1=',field1,'field2=',field2
 !
          IF(FIELD1.OR.FIELD2.OR.NEED_IFI)THEN
-           print *,'should process cape here'
            ITYPE = 2
            call allocate_cape_arrays
 !
@@ -2226,7 +2225,7 @@
                ENDIF
              ENDDO
            ENDDO
-           END DO loop_80
+           ENDDO loop_80
 !
            DPBND = 0.
            CALL CALCAPE(ITYPE,DPBND,P1D,T1D,Q1D,LB2,EGRID1,   &
@@ -2234,7 +2233,6 @@
 
 !
            IF(IGET(566)>0 .or. NEED_IFI) THEN
-             print *,"STORE CAPE"
               GRID1=spval
 !$omp parallel do private(i,j)
               DO J=JSTA,JEND

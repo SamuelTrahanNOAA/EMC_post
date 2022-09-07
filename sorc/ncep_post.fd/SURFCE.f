@@ -3688,9 +3688,8 @@
          ENDIF
 
 !     PRECIPITATION BUCKETS - accumulated between output times
-!
+!     'BUCKET TOTAL PRECIP '
          IF (IGET(434)>0. .or. IGET(1003)>0 .or. IGET(1004)>0 .or. IGET(1005)>0) THEN
-            print *,'BUCKET TOTAL PRECIP'
 !$omp parallel do private(i,j)
            DO J=JSTA,JEND
              DO I=ISTA,IEND
@@ -3702,7 +3701,6 @@
              ENDDO
            ENDDO
            ! Note: IFI.F may replace IFI_APCP with other values where it is spval or 0
-           write(0,*) 'DONE BUCKET TOTAL PRECIP'
          ENDIF
 
          IF (IGET(434)>0.) THEN
