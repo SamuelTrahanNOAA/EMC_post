@@ -20183,7 +20183,7 @@ ICE_SEV_IFI_FLIGHT_LEVEL
 ?
 1
 tmpl4_0
-ICESEV
+ICSEV
 ?
 ?
 spec_alt_above_mean_sea_lvl
