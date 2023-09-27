@@ -146,6 +146,7 @@ contains !==============================================================
     call send_missing_data(1008)  ! SLD = missing
     call send_missing_data(1009)  ! ICE_SEV_CAT = missing
     call send_missing_data(1010)  ! ICE_SEV_CAT = missing
+    call send_missing_data(1015)  ! ICE_SEV = missing
   end subroutine run_ifi
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -746,12 +747,13 @@ contains !==============================================================
       call send_missing_data(1008)
       call send_missing_data(1009)
       call send_missing_data(1010)
+      call send_missing_data(1015)
       return
     endif
 
     ! FIXME: Once the post is i-decomposed, replace the appropriate 1..im in this routine.
     
-    if(grib/='grib2' .or. (IGET(1007)<=0 .and. IGET(1008)<=0 .and. IGET(1009)<=0 .and. IGET(1010)<=0)) then
+    if(grib/='grib2' .or. (IGET(1007)<=0 .and. IGET(1008)<=0 .and. IGET(1009)<=0 .and. IGET(1010)<=0) .and. IGET(1015<=0) then
       if(me==0) then
         print '(A)','IFI fields were not requested; skipping IFI'
       endif
@@ -891,6 +893,7 @@ contains !==============================================================
     call send_data(cat_vars,'SLD',1008)
     call send_data(cat_vars,'ICE_SEV_CAT',1009)
     call send_data(cat_vars,'WMO_ICE_SEV_CAT',1010)
+    call send_data(flight_vars,'ICE_SEV',1015)
     
     ! When this subroutine ends, a Fortran-2003-compliant compiler
     ! will free all memory IFI uses, by calling the destructors (final
