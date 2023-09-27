@@ -753,7 +753,7 @@ contains !==============================================================
 
     ! FIXME: Once the post is i-decomposed, replace the appropriate 1..im in this routine.
     
-    if(grib/='grib2' .or. (IGET(1007)<=0 .and. IGET(1008)<=0 .and. IGET(1009)<=0 .and. IGET(1010)<=0) .and. IGET(1015<=0) then
+    if(grib/='grib2' .or. (IGET(1007)<=0 .and. IGET(1008)<=0 .and. IGET(1009)<=0 .and. IGET(1010)<=0) .and. IGET(1015)<=0) then
       if(me==0) then
         print '(A)','IFI fields were not requested; skipping IFI'
       endif
