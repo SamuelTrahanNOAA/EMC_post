@@ -6,7 +6,7 @@
 # Fernando Andrade-Maldonado / Wen Meng 9/2023 Add Hercules, fix typos, and refactor
 # Fernando Andrade-Maldonado 4/2024 Additional Log info
 ######################################################################
-
+set -xue
 SECONDS=0
 
 git_branch="develop"
@@ -43,8 +43,14 @@ if [[ $clone_on == "yes" ]]; then
 fi
 export svndir=${test_v}
 
+if [[ -d $svndir/sorc/libIFI.fd/src/ ]] ; then
+    have_ifi=yes
+else
+    have_ifi=no
+fi
+
 #Assume a nems account to run with
-accnr=${accnr:-"nems"}
+accnr=${accnr:-"rtrr"}
 
 #Build UPP executable
 build_exe=yes
@@ -58,6 +64,10 @@ run_rap=yes
 run_hrrr=yes
 run_hafs=yes
 run_rtma=yes
+if [[ "${have_ifi:-no}" == yes ]] ; then
+  run_hrrr_ifi=yes
+  run_ifi_standalone=yes
+fi
 
 #find machine
 mac=$(hostname | cut -c1-1)
@@ -65,8 +75,8 @@ mac2=$(hostname | cut -c1-2)
 mac3=$(hostname | cut -c1-4)
 if [ $mac2 = hf ]; then # for HERA
  export machine=HERA
- export homedir=${homedir:-"/scratch2/NAGAPE/epic/UPP/test_suite"}
- export rundir=${rundir:-"/scratch1/NCEPDEV/stmp2/${USER}"}
+ export homedir=${homedir:-"/scratch2/BMC/ifi/Samuel.Trahan/fip/regtest/test_suite/"}
+ export rundir=${rundir:-"/scratch2/BMC/ifi/Samuel.Trahan/fip/regtest/scrub/"}
  module use /contrib/spack-stack/spack-stack-1.8.0/envs/ue-intel-2021.5.0/install/modulefiles/Core
  module load stack-intel/2021.5.0
  module load stack-intel-oneapi-mpi/2021.5.1
@@ -98,6 +108,7 @@ mkdir -p $workdir
 
 #differentiates for orion and hercules
 export rundir="${rundir}/upp-${machine}"
+test -d "${rundir}" || mkdir "${rundir}"
 
 #set log file
 export logfile=`pwd`/rt.log.$machine
@@ -111,7 +122,10 @@ if [ "$build_exe" = "yes" ]; then
 cd ${test_v}
 mkdir -p ${test_v}/exec
 cd ${test_v}/tests
-./compile_upp.sh
+if [[ "${have_ifi:-no}" == yes ]] ; then
+    compile_args="${compile_args:- } -I -B"
+fi
+./compile_upp.sh ${compile_args:- }
 status=$?
 if [ $status -eq 0 ]; then
   msg="Building executable successfully"
@@ -123,14 +137,28 @@ postmsg "$logfile" "$msg"
 fi
 
 jobid_list=""
+set -xe
+#execute ifi tests           
+if [ "$run_hrrr_ifi" = "yes" ]; then
+cd $workdir
+cp $svndir/ci/jobs-dev/run_post_hrrr_ifi_${machine}.sh .
+job_id=`sbatch --parsable -A ${accnr} run_post_hrrr_ifi_${machine}.sh`
+jobid_list=$jobid_list" "${job_id}
+dep_job_id=$job_id
+  if [ "$run_ifi_standalone" = "yes" ]; then
+    cp $svndir/ci/jobs-dev/run_ifi_standalone_${machine}.sh .
+    job_id=`sbatch --parsable -A ${accnr} --dependency=afterany:$dep_job_id run_ifi_standalone_${machine}.sh`
+    jobid_list=$jobid_list" "${job_id}
+  fi
+fi
 
 #execute nmmb grib2 test
 if [ "$run_nmmb" = "yes" ]; then
 cd $workdir
-cp $homedir/jobs-dev/run_post_nmmb_Grib2_${machine}.sh .
+cp $svndir/ci/jobs-dev/run_post_nmmb_Grib2_${machine}.sh .
 job_id=`sbatch --parsable -A ${accnr} run_post_nmmb_Grib2_${machine}.sh`
 jobid_list=$jobid_list" "$job_id
-cp $homedir/jobs-dev/run_post_nmmb_Grib2_pe_test_${machine}.sh .
+cp $svndir/ci/jobs-dev/run_post_nmmb_Grib2_pe_test_${machine}.sh .
 job_id=`sbatch --parsable -A ${accnr} run_post_nmmb_Grib2_pe_test_${machine}.sh`
 jobid_list=$jobid_list" "${job_id}
 fi
@@ -138,10 +166,10 @@ fi
 #execute fv3gefs test
 if [ "$run_gefs" = "yes" ]; then
 cd $workdir
-cp $homedir/jobs-dev/run_post_fv3gefs_${machine}.sh .
+cp $svndir/ci/jobs-dev/run_post_fv3gefs_${machine}.sh .
 job_id=`sbatch --parsable -A ${accnr} run_post_fv3gefs_${machine}.sh`
 jobid_list=$jobid_list" "${job_id}
-cp $homedir/jobs-dev/run_post_fv3gefs_pe_test_${machine}.sh .
+cp $svndir/ci/jobs-dev/run_post_fv3gefs_pe_test_${machine}.sh .
 job_id=`sbatch --parsable -A ${accnr} run_post_fv3gefs_pe_test_${machine}.sh`
 jobid_list=$jobid_list" "${job_id}
 fi
@@ -149,10 +177,10 @@ fi
 #execute rap test
 if [ "$run_rap" = "yes" ]; then
 cd $workdir
-cp $homedir/jobs-dev/run_post_rap_${machine}.sh .
+cp $svndir/ci/jobs-dev/run_post_rap_${machine}.sh .
 job_id=`sbatch --parsable -A ${accnr} run_post_rap_${machine}.sh`
 jobid_list=$jobid_list" "$job_id
-cp $homedir/jobs-dev/run_post_rap_pe_test_${machine}.sh .
+cp $svndir/ci/jobs-dev/run_post_rap_pe_test_${machine}.sh .
 job_id=`sbatch --parsable -A ${accnr} run_post_rap_pe_test_${machine}.sh`
 jobid_list=$jobid_list" "${job_id}
 fi
@@ -160,10 +188,10 @@ fi
 #execute hrrr test
 if [ "$run_hrrr" = "yes" ]; then
 cd $workdir
-cp $homedir/jobs-dev/run_post_hrrr_${machine}.sh .
+cp $svndir/ci/jobs-dev/run_post_hrrr_${machine}.sh .
 job_id=`sbatch --parsable -A ${accnr} run_post_hrrr_${machine}.sh`
 jobid_list=$jobid_list" "$job_id
-cp $homedir/jobs-dev/run_post_hrrr_pe_test_${machine}.sh .
+cp $svndir/ci/jobs-dev/run_post_hrrr_pe_test_${machine}.sh .
 job_id=`sbatch --parsable -A ${accnr} run_post_hrrr_pe_test_${machine}.sh`
 jobid_list=$jobid_list" "${job_id}
 fi
@@ -171,10 +199,10 @@ fi
 #execute fv3gfs test
 if [ "$run_gfs" = "yes" ]; then
 cd $workdir
-cp $homedir/jobs-dev/run_post_fv3gfs_${machine}.sh .
+cp $svndir/ci/jobs-dev/run_post_fv3gfs_${machine}.sh .
 job_id=`sbatch --parsable -A ${accnr}  run_post_fv3gfs_${machine}.sh`
 jobid_list=$jobid_list" "${job_id}
-cp $homedir/jobs-dev/run_post_fv3gfs_pe_test_${machine}.sh .
+cp $svndir/ci/jobs-dev/run_post_fv3gfs_pe_test_${machine}.sh .
 job_id=`sbatch --parsable -A ${accnr} run_post_fv3gfs_pe_test_${machine}.sh`
 jobid_list=$jobid_list" "${job_id}
 fi
@@ -182,10 +210,10 @@ fi
 #execute fv3r test
 if [ "$run_fv3r" = "yes" ]; then
 cd $workdir
-cp $homedir/jobs-dev/run_post_fv3r_${machine}.sh .
+cp $svndir/ci/jobs-dev/run_post_fv3r_${machine}.sh .
 job_id=`sbatch --parsable -A ${accnr} run_post_fv3r_${machine}.sh`
 jobid_list=$jobid_list" "${job_id}
-cp $homedir/jobs-dev/run_post_fv3r_pe_test_${machine}.sh .
+cp $svndir/ci/jobs-dev/run_post_fv3r_pe_test_${machine}.sh .
 job_id=`sbatch --parsable -A ${accnr} run_post_fv3r_pe_test_${machine}.sh`
 jobid_list=$jobid_list" "${job_id}
 fi
@@ -193,10 +221,10 @@ fi
 #execute fv3hafs test
 if [ "$run_hafs" = "yes" ]; then
 cd $workdir
-cp $homedir/jobs-dev/run_post_fv3hafs_${machine}.sh .
+cp $svndir/ci/jobs-dev/run_post_fv3hafs_${machine}.sh .
 job_id=`sbatch --parsable -A ${accnr} run_post_fv3hafs_${machine}.sh`
 jobid_list=$jobid_list" "${job_id}
-cp $homedir/jobs-dev/run_post_fv3hafs_pe_test_${machine}.sh .
+cp $svndir/ci/jobs-dev/run_post_fv3hafs_pe_test_${machine}.sh .
 job_id=`sbatch --parsable -A ${accnr} run_post_fv3hafs_pe_test_${machine}.sh`
 jobid_list=$jobid_list" "${job_id}
 fi
@@ -204,14 +232,14 @@ fi
 #execute rtma test
 if [ "$run_rtma" = "yes" ]; then
 cd $workdir
-cp $homedir/jobs-dev/run_post_3drtma_${machine}.sh .
+cp $svndir/ci/jobs-dev/run_post_3drtma_${machine}.sh .
 job_id=`sbatch --parsable -A ${accnr} run_post_3drtma_${machine}.sh`
 jobid_list=$jobid_list" "${job_id}
-cp $homedir/jobs-dev/run_post_3drtma_pe_test_${machine}.sh .
+cp $svndir/ci/jobs-dev/run_post_3drtma_pe_test_${machine}.sh .
 job_id=`sbatch --parsable -A ${accnr} run_post_3drtma_pe_test_${machine}.sh`
 jobid_list=$jobid_list" "${job_id}
 fi
-
+set +xe
 echo "Job cards submitted for enabled tests, waiting on timestamps for finished jobs..."
 
 #get run time for each test
