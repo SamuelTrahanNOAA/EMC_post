@@ -9,8 +9,6 @@
 #SBATCH -q batch
 #SBATCH -A ovp
 
-set -eux
-
 # specify computation resource
 export threads=1
 export MP_LABELIO=yes
@@ -20,7 +18,6 @@ export APRUN="srun"
 ############################################
 # Loading module
 ############################################
-set +x
 module purge
 module use /contrib/spack-stack/spack-stack-1.8.0/envs/ue-intel-2021.5.0/install/modulefiles/Core
 module load stack-intel/2021.5.0
@@ -30,7 +27,6 @@ module load jasper/2.0.32
 module load prod_util/2.1.1
 module load crtm/2.4.0.1
 module list
-set -x
 
 msg="Starting fv3r_ifi test"
 postmsg "$logfile" "$msg"
@@ -78,7 +74,7 @@ rm -f fort.*
 cp ${svndir}/fix/nam_micro_lookup.dat ./eta_micro_lookup.dat
 
 # copy flat files instead
-cp ${svndir}/parm/postxconfig-NT-rrfs.txt ./postxconfig-NT.txt
+cp ${svndir}/parm/postxconfig-NT-ifi.txt ./postxconfig-NT.txt
 
 cp ${svndir}/parm/params_grib2_tbl_new ./params_grib2_tbl_new
 
@@ -106,10 +102,7 @@ ${APRUN} ${POSTGPEXEC} < itag > outpost_nems_${NEWDATE}
 fhr=`expr $fhr + 0`
 fhr2=`printf "%02d" $fhr`
 
-filelist="PRSLEV${fhr2}.tm00 \
-          NATLEV${fhr2}.tm00"
-
-set +e
+filelist="IFIFIP.GrbF04"
 
 for file in $filelist; do
 export filein2=$file
