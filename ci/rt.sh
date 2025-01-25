@@ -12,9 +12,12 @@ SECONDS=0
 git_branch="develop"
 git_url="https://github.com/NOAA-EMC/UPP.git"
 clone_on="no"
+disable_ifi="no" # don't use libIFI, even if it is present
 
-while getopts a:w:h:r:t:b:u:c opt; do
+while getopts a:w:h:r:t:b:u:cd opt; do
   case $opt in
+    d) disable_ifi=yes
+        ;;
     a) accnr=${OPTARG}
         ;;
     w) workdir=${OPTARG}
@@ -64,11 +67,19 @@ run_rap=yes
 run_hrrr=yes
 run_hafs=yes
 run_rtma=yes
-if [[ "${have_ifi:-no}" == yes ]] ; then
+
+# Tests with IFI enabled only work if libIFI is present.
+if [[ "$have_ifi" == yes && "$disable_ifi" == no ]] ; then
   run_hrrr_ifi=yes
   run_ifi_standalone_hrrr=no # turned off by default because it doesn't match UPP output yet
   run_fv3r_ifi=yes
   run_ifi_standalone_fv3r=yes
+else
+  # Cannot run these without ifi
+  run_hrrr_ifi=no
+  run_ifi_standalone_hrrr=no
+  run_fv3r_ifi=no
+  run_ifi_standalone_fv3r=no
 fi
 
 #find machine
@@ -121,21 +132,35 @@ runtime_log=$homedir/scripts/runtime.log.$machine
 
 #build executable
 if [ "$build_exe" = "yes" ]; then
-cd ${test_v}
-mkdir -p ${test_v}/exec
-cd ${test_v}/tests
-if [[ "${have_ifi:-no}" == yes ]] ; then
-    compile_args="${compile_args:- } -I -B"
-fi
-./compile_upp.sh ${compile_args:- }
-status=$?
-if [ $status -eq 0 ]; then
-  msg="Building executable successfully"
-else
-  msg="Building executable with failure"
-  exit
-fi
-postmsg "$logfile" "$msg"
+  cd ${test_v}
+  mkdir -p ${test_v}/exec
+  cd ${test_v}/tests
+  ./compile_upp.sh -o upp_no_ifi.x
+  status=$?
+  if [ $status -eq 0 ]; then
+    msg="Building executable successfully"
+  else
+    msg="Building executable with failure"
+    postmsg "$logfile" "$msg"
+    exit 2
+  fi
+
+  if [[ "$have_ifi" == yes && "$disable_ifi" == no ]] ; then
+    ./compile_upp.sh -a -o upp_with_ifi.x -I -B
+    status=$?
+    if [ $status -eq 0 ]; then
+      msg="Building UPP+IFI executables successfully"
+    else
+      msg="Building UPP+IFI executables with failure"
+      postmsg "$logfile" "$msg"
+      exit 2
+    fi
+    ln -s upp_with_ifi.x $svndir/exec/upp.x
+  else
+    ln -s upp_no_ifi.x $svndir/exec/upp.x
+  fi
+
+  postmsg "$logfile" "$msg"
 fi
 
 jobid_list=""
@@ -230,6 +255,9 @@ job_id=`sbatch --parsable -A ${accnr} run_post_fv3r_${machine}.sh`
 jobid_list=$jobid_list" "${job_id}
 cp $svndir/ci/jobs-dev/run_post_fv3r_pe_test_${machine}.sh .
 job_id=`sbatch --parsable -A ${accnr} run_post_fv3r_pe_test_${machine}.sh`
+jobid_list=$jobid_list" "${job_id}
+cp $svndir/ci/jobs-dev/run_post_fv3r_ifi_missing_${machine}.sh .
+job_id=`sbatch --parsable -A ${accnr} run_post_fv3r_ifi_missing_${machine}.sh`
 jobid_list=$jobid_list" "${job_id}
 fi
 
