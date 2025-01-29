@@ -4,16 +4,15 @@
 #SBATCH -e out.post.ifi_standalone_hrrr
 #SBATCH -J ifi_standalone_hrrr_test
 #SBATCH -t 00:30:00
-#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=40
 #SBATCH --exclusive
 #SBATCH --partition bigmem
 #SBATCH -q batch
 #SBATCH -A ovp
 
-set -eux
-
 # specify computation resource
-export threads=1
+export threads=40
 export MP_LABELIO=yes
 export OMP_NUM_THREADS=$threads
 export OMP_STACKSIZE=512M
@@ -25,7 +24,6 @@ export APRUN="srun"
 
 # EXPORT list here
 
-set +x
 module purge
 module use /contrib/spack-stack/spack-stack-1.8.0/envs/ue-intel-2021.5.0/install/modulefiles/Core
 module load stack-intel/2021.5.0
@@ -37,7 +35,6 @@ module load crtm/2.4.0.1
 module load nccmp
 module load netcdf-cxx4/4.3.1
 module list
-set -x
 
 ulimit -s unlimited
 ulimit
@@ -56,8 +53,6 @@ cd $DATA
 upp_output=cat_vars_0.nc
 ifi_standalone_output=icing-category-output.nc
 diff_file=cat_vars_0.nc.diff
-
-set +e
 
 $APRUN --cpus-per-task=$OMP_NUM_THREADS --nodes=1 --ntasks=1 --exclusive \
      "$FIPEXEC" -u hybr_vars_0.nc hybr_vars_0.nc .
