@@ -4048,7 +4048,7 @@
                ENDIF 
              ENDDO
            ENDDO
-           ! Note: IFI.F may replace IFI_APCP with other values where it is spval or 0
+           ! Note: IFI.F may replace IFI_APCP=spval with other values
          ENDIF
 
          IF (IGET(434)>0.) THEN
