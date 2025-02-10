@@ -1,8 +1,8 @@
 #!/bin/sh
 
-#SBATCH -o out.post.fv3r_ifi
-#SBATCH -e out.post.fv3r_ifi
-#SBATCH -J fv3r_ifi_test
+#SBATCH -o out.post.fv3r_ifi_missing
+#SBATCH -e out.post.fv3r_ifi_missing
+#SBATCH -J fv3r_ifi_missing
 #SBATCH -t 00:30:00
 #SBATCH -N 8 --ntasks-per-node=12
 ##SBATCH -q debug
@@ -28,18 +28,18 @@ module load prod_util/2.1.1
 module load crtm/2.4.0.1
 module list
 
-msg="Starting fv3r_ifi test"
+msg="Starting fv3r_ifi_missing test"
 postmsg "$logfile" "$msg"
 
 export cmp_grib2_grib2=/home/Wen.Meng/bin/cmp_grib2_grib2_new
-export POSTGPEXEC=${svndir}/exec/upp.x
+export POSTGPEXEC=${svndir}/exec/upp_no_ifi.x
 
 # specify forecast start time and hour for running your post job
 export startdate=2023062800
 export fhr=010
 
 # specify your running and output directory
-export DATA=$rundir/fv3r_ifi_${startdate}
+export DATA=$rundir/fv3r_ifi_missing_${startdate}
 export tmmark=tm00
 rm -rf $DATA; mkdir -p $DATA
 cd $DATA
@@ -102,7 +102,7 @@ ${APRUN} ${POSTGPEXEC} < itag > outpost_nems_${NEWDATE}
 fhr=`expr $fhr + 0`
 fhr2=`printf "%02d" $fhr`
 
-filelist="IFIFIP.GrbF04"
+filelist="IFIFIP${fhr2}.tm00"
 
 for file in $filelist; do
 export filein2=$file
@@ -112,7 +112,7 @@ export err=$?
 if [ $err = "0" ] ; then
 
  # use cmp to see if new pgb files are identical to the control one
- cmp ${filein2} $homedir/data_out/fv3r_ifi/${filein2}.${machine}
+ cmp ${filein2} $homedir/data_out/fv3r_ifi_missing/${filein2}.${machine}
 
  # if not bit-identical, use cmp_grib2_grib2 to compare each grib record
  export err1=$?
@@ -124,7 +124,7 @@ if [ $err = "0" ] ; then
   echo $msg
   echo " start comparing each grib record and write the comparison result to *diff files"
   echo " check these *diff files to make sure your new post only change variables which you intend to change"
-  $cmp_grib2_grib2 $homedir/data_out/fv3r_ifi/${filein2}.${machine} ${filein2} > ${filein2}.diff
+  $cmp_grib2_grib2 $homedir/data_out/fv3r_ifi_missing/${filein2}.${machine} ${filein2} > ${filein2}.diff
  fi
 
 else

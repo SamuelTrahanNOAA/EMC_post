@@ -9,8 +9,6 @@
 #SBATCH -A ovp
 #SBATCH -N 2 --ntasks-per-node=24
 
-set -eux
-
 # specify computation resource
 export MP_LABELIO=yes
 export threads=1
@@ -26,7 +24,6 @@ date
 
 # EXPORT list here
 
-set +x
 module purge
 module use /contrib/spack-stack/spack-stack-1.8.0/envs/ue-intel-2021.5.0/install/modulefiles/Core
 module load stack-intel/2021.5.0
@@ -36,7 +33,6 @@ module load jasper/2.0.32
 module load prod_util/2.1.1
 module load crtm/2.4.0.1
 module list
-set -x
 
 msg="Starting hrrr_ifi test"
 postmsg "$logfile" "$msg"
@@ -88,8 +84,6 @@ ${APRUN} ${POSTGPEXEC} < itag > wrfpost2.out
 
 # operational hrrr post processing generates 3 files
 filelist="IFIFIP.GrbF04"
-
-set +e
 
 for file in $filelist; do
 export filein2=$file
