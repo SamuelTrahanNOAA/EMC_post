@@ -117,10 +117,10 @@ if [ $err = "0" ] ; then
  # if not bit-identical, use cmp_grib2_grib2 to compare each grib record
  export err1=$?
  if [ $err1 -eq 0 ] ; then
-  msg="fv3r test: your new post executable generates bit-identical ${filein2} as the trunk"
+  msg="fv3r_ifi_missing test: your new post executable generates bit-identical ${filein2} as the trunk"
   echo $msg
  else
-  msg="fv3r test: your new post executable did not generate bit-identical ${filein2} as the trunk"
+  msg="fv3r_ifi_missing test: your new post executable did not generate bit-identical ${filein2} as the trunk"
   echo $msg
   echo " start comparing each grib record and write the comparison result to *diff files"
   echo " check these *diff files to make sure your new post only change variables which you intend to change"
@@ -129,13 +129,13 @@ if [ $err = "0" ] ; then
 
 else
 
- msg="fv3r test: post failed using your new post executable to generate ${filein2}"
- echo $msg
+ msg="fv3r_ifi_missing test: post failed using your new post executable to generate ${filein2}"
+ echo $msg 2>&1 | tee -a TEST_ERROR
 
 fi
 postmsg "$logfile" "$msg"
 done
 
-echo "PROGRAM IS COMPLETE!!!!!"
-msg="Ending fv3r test"
+echo "PROGRAM IS COMPLETE!!!!!" 2>&1 | tee SUCCESS
+msg="Ending fv3r_ifi_missing test"
 postmsg "$logfile" "$msg"

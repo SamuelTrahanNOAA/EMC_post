@@ -140,14 +140,14 @@ if [ $err = "0" ] ; then
 
 else
 
- msg="rtma test: post failed using your new post executable to generate ${filein2}"
- echo $msg
+    msg="rtma test: post failed using your new post executable to generate ${filein2}"
+    echo $msg 2>&1 | tee -a TEST_ERROR
 
 fi
 postmsg "$logfile" "$msg"
 done
 
-echo "PROGRAM IS COMPLETE!!!!!"
+echo "PROGRAM IS COMPLETE!!!!!" 2>&1 | tee SUCCESS
 msg="Ending rtma test"
 postmsg "$logfile" "$msg"
 

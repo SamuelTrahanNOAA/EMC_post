@@ -71,10 +71,10 @@ if [ -s "$ifi_standalone_output" ] ; then
  fi
 else
   msg="ifi standalone_fv3r test: Failed. ifi standalone failed using your new executable to generate $ifi_standalone_output"
-  echo $msg
+  echo $msg 2>&1 | tee -a TEST_ERROR
 fi
 postmsg "$logfile" "$msg"
 
-echo "PROGRAM IS COMPLETE!!!!!"
+echo "PROGRAM IS COMPLETE!!!!!" 2>&1 | tee SUCCESS
 msg="Ending ifi_standalone_fv3r test"
 postmsg "$logfile" "$msg"
