@@ -88,8 +88,8 @@ mac2=$(hostname | cut -c1-2)
 mac3=$(hostname | cut -c1-4)
 if [ $mac2 = hf ]; then # for HERA
  export machine=HERA
- export homedir=${homedir:-"/scratch2/BMC/ifi/Samuel.Trahan/fip/regtest/test_suite/"}
- export rundir=${rundir:-"/scratch2/BMC/ifi/Samuel.Trahan/fip/regtest/scrub/"}
+ export homedir=${homedir:-"/scratch2/BMC/ifi/Samuel.Trahan/test_suite/"}
+ export rundir=${rundir:-"/scratch1/NCEPDEV/stmp2/${USER}"}
  module use /contrib/spack-stack/spack-stack-1.8.0/envs/ue-intel-2021.5.0/install/modulefiles/Core
  module load stack-intel/2021.5.0
  module load stack-intel-oneapi-mpi/2021.5.1
