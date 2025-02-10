@@ -166,7 +166,7 @@ fi
 jobid_list=""
 set -xe
 #execute ifi tests           
-if [ "$run_hrrr_ifi" = "yes" ]; then
+if [ "${run_hrrr_ifi:-no}" = "yes" ]; then
 cd $workdir
 cp $svndir/ci/jobs-dev/run_post_hrrr_ifi_${machine}.sh .
 job_id=`sbatch --parsable -A ${accnr} run_post_hrrr_ifi_${machine}.sh`
