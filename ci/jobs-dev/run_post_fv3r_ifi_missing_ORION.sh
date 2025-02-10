@@ -28,20 +28,18 @@ module load libpng/1.6.37
 module load jasper/2.0.32
 module load prod_util/2.1.1
 module load crtm/2.4.0.1
-module load grib-util/1.3.0
-module load wgrib2/2.0.8
 module list
 
 #export WGRIB2=wgrib2
-#export GRB2INDEX=grb2index 
-export COMROOT=$rundir
+#export COMROOT=$rundir
 
 ulimit -s unlimited
+#ulimit -s1900000000
 
 msg="Starting fv3r_ifi_missing test"
 postmsg "$logfile" "$msg"
 
-export cmp_grib2_grib2=${homedir}/test_suite/scripts/cmp_grib2_grib2_new
+export cmp_grib2_grib2=/home/wmeng/bin/cmp_grib2_grib2_new
 export POSTGPEXEC=${svndir}/exec/upp_no_ifi.x
 
 # specify forecast start time and hour for running your post job
@@ -139,13 +137,13 @@ if [ $err = "0" ] ; then
 
 else
 
- msg="fv3r test: post failed using your new post executable to generate ${filein2}"
- echo $msg
+ msg="fv3r_ifi_missing test: post failed using your new post executable to generate ${filein2}"
+ echo $msg 2>&1 | tee -a TEST_ERROR
 
 fi
 postmsg "$logfile" "$msg"
 done
 
-echo "PROGRAM IS COMPLETE!!!!!"
-msg="Ending fv3r test"
+echo "PROGRAM IS COMPLETE!!!!!" 2>&1 | tee SUCCESS
+msg="Ending fv3r_ifi_missing test"
 postmsg "$logfile" "$msg"

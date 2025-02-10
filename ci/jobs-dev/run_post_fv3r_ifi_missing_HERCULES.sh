@@ -42,7 +42,7 @@ postmsg "$logfile" "$msg"
 
 export cmp_grib2_grib2=${homedir}/scripts/cmp_grib2_grib2_new
 # specify user's own post working directory for testing
-export POSTGPEXEC=$svndir/exec/upp.x
+export POSTGPEXEC=${svndir}/exec/upp_no_ifi.x
 
 # specify forecast start time and hour for running your post job
 export startdate=2023062800
@@ -139,13 +139,13 @@ if [ $err = "0" ] ; then
 
 else
 
- msg="fv3r test: post failed using your new post executable to generate ${filein2}"
- echo $msg
+ msg="fv3r_ifi_missing test: post failed using your new post executable to generate ${filein2}"
+ echo $msg 2>&1 | tee -a TEST_ERROR
 
 fi
 postmsg "$logfile" "$msg"
 done
 
-echo "PROGRAM IS COMPLETE!!!!!"
-msg="Ending fv3r test"
+echo "PROGRAM IS COMPLETE!!!!!" 2>&1 | tee SUCCESS
+msg="Ending fv3r_ifi_missing test"
 postmsg "$logfile" "$msg"
