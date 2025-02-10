@@ -102,7 +102,7 @@ ${APRUN} ${POSTGPEXEC} < itag > outpost_nems_${NEWDATE}
 fhr=`expr $fhr + 0`
 fhr2=`printf "%02d" $fhr`
 
-filelist="IFIFIP.GrbF04"
+filelist="IFIFIP10.tm00"
 
 for file in $filelist; do
 export filein2=$file
@@ -130,12 +130,12 @@ if [ $err = "0" ] ; then
 else
 
  msg="fv3r test: post failed using your new post executable to generate ${filein2}"
- echo $msg
+ echo $msg 2>&1 | tee -a TEST_ERROR
 
 fi
 postmsg "$logfile" "$msg"
 done
 
-echo "PROGRAM IS COMPLETE!!!!!"
+echo "PROGRAM IS COMPLETE!!!!!" 2>&1 | tee SUCCESS
 msg="Ending fv3r test"
 postmsg "$logfile" "$msg"

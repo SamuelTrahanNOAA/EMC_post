@@ -124,13 +124,13 @@ if [ $err = "0" ] ; then
 else
 
  msg="hrrr pe test: post failed using your new post executable to generate ${filein2}"
- echo $msg
+ echo $msg 2>&1 | tee -a TEST_ERROR
 
 fi
 postmsg "$logfile" "$msg"
 done
 
-echo "PROGRAM IS COMPLETE!!!!!"
+echo "PROGRAM IS COMPLETE!!!!!" 2>&1 | tee SUCCESS
 msg="Ending hrrr pe test"
 postmsg "$logfile" "$msg"
 
