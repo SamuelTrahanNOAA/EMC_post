@@ -139,13 +139,13 @@ fi
 jobid_list=""
 set -xe
 #execute ifi tests           
-if [ "$run_hrrr_ifi" = "yes" ]; then
+if [ "${run_hrrr_ifi:-no}" = "yes" ]; then
 cd $workdir
 cp $svndir/ci/jobs-dev/run_post_hrrr_ifi_${machine}.sh .
 job_id=`sbatch --parsable -A ${accnr} run_post_hrrr_ifi_${machine}.sh`
 jobid_list=$jobid_list" "${job_id}
 dep_job_id=$job_id
-  if [ "$run_ifi_standalone" = "yes" ]; then
+  if [ "${run_ifi_standalone:-no}" = "yes" ]; then
     cp $svndir/ci/jobs-dev/run_ifi_standalone_${machine}.sh .
     job_id=`sbatch --parsable -A ${accnr} --dependency=afterany:$dep_job_id run_ifi_standalone_${machine}.sh`
     jobid_list=$jobid_list" "${job_id}
