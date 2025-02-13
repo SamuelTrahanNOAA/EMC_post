@@ -2,7 +2,7 @@
  
 #SBATCH -o out.post.rtma_pe_test
 #SBATCH -e out.post.rtma_pe_test
-#SBATCH -J rtma_test_pe_test
+#SBATCH -J rtma_pe_test
 #SBATCH -t 00:20:00
 ##SBATCH -q debug
 #SBATCH -q batch
