@@ -303,7 +303,7 @@ for job_id in $jobid_list; do
   if [ $ic -lt $sleep_loop_max ]; then
      runtime=`sacct --parsable -j $job_id --format=jobid,jobname,elapsed,state | cut -d"|" -f3|awk 'FNR == 2'`
      jobname=`sacct --parsable -j $job_id --format=jobid,jobname,elapsed,state | cut -d"|" -f2|awk 'FNR == 2'`
-     runtime_b=`grep ${jobname} ${runtime_log} | awk '{print $2}' `
+     runtime_b=`grep "^${jobname}" ${runtime_log} | awk '{print $2}'`
      echo "$runtime   $jobname ${runtime_b}"
      msg="Runtime: $jobname $runtime -- baseline ${runtime_b}"
      postmsg "$logfile" "$msg"
